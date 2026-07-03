@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Librarian Dashboard — CRAMBRUNCH</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="../css/main.css"/>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <img src="../assets/logo.jpg" alt="Logo" style="height:40px;width:auto;margin-right:10px;border-radius:8px;"/>
+    <span>Librarian</span>
+  </div>
+  <div class="sidebar-user">
+    <div class="user-avatar">LB</div>
+    <div class="user-info"><div class="name user-name">Librarian</div><div class="role-badge" style="background:rgba(245,158,11,.1);color:var(--warning)">Librarian</div></div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section">
+      <div class="nav-section-title">Library Management</div>
+      <a class="nav-item active" data-view="v-home" onclick="switchView('v-home')"><span class="icon">🏠</span><span class="label">Dashboard</span></a>
+      <a class="nav-item" data-view="v-issue" onclick="switchView('v-issue')"><span class="icon">➕</span><span class="label">Issue Book</span></a>
+      <a class="nav-item" data-view="v-records" onclick="switchView('v-records')"><span class="icon">📚</span><span class="label">All Records</span></a>
+    </div>
+  </nav>
+  <div class="sidebar-bottom">
+    <button class="logout-btn" data-logout>🚪 Logout</button>
+  </div>
+</aside>
+
+<div class="notif-panel">
+  <div class="notif-panel-header">
+    <h3>🔔 Notifications</h3>
+    <button class="btn btn-xs btn-danger" onclick="toggleNotifPanel()" title="Close Notifications">✕</button>
+  </div>
+  <div class="notif-list"></div>
+</div>
+
+<main class="main">
+  <div class="topbar">
+    <div class="page-title">Dashboard</div>
+    <div class="topbar-actions">
+      <button class="notif-btn" onclick="toggleNotifPanel()">🔔 <span class="notif-dot" style="display:none">0</span></button>
+    </div>
+  </div>
+
+  <div class="content">
+    <!-- HOME -->
+    <div class="view active" id="v-home">
+      <div style="margin-bottom:1.5rem">
+        <h2 style="font-family:var(--font-head);font-size:1.4rem;font-weight:700">Librarian Portal 📚</h2>
+        <p style="color:var(--text-muted);font-size:.875rem">Manage book issuances and returns</p>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card"><div class="s-icon">📚</div><div class="s-val" id="h-total">—</div><div class="s-lbl">Total Records</div></div>
+        <div class="stat-card" style="cursor:pointer" onclick="switchView('v-records'); document.getElementById('lib-filter').value='issued'; loadRecords();"><div class="s-icon">📖</div><div class="s-val" id="h-issued">—</div><div class="s-lbl">Currently Issued</div></div>
+        <div class="stat-card" style="cursor:pointer" onclick="switchView('v-records'); document.getElementById('lib-filter').value='returned'; loadRecords();"><div class="s-icon">✅</div><div class="s-val" id="h-returned">—</div><div class="s-lbl">Returned</div></div>
+        <div class="stat-card"><div class="s-icon">⚠️</div><div class="s-val" id="h-overdue" style="color:var(--danger)">—</div><div class="s-lbl">Overdue</div></div>
+      </div>
+    </div>
+
+    <!-- ISSUE BOOK -->
+    <div class="view" id="v-issue">
+      <div class="card" style="max-width:600px">
+        <div class="card-header"><h3>➕ Issue a New Book</h3></div>
+        <div class="card-body">
+          <div class="form-group"><label>Student Email</label><input type="email" id="is-email" placeholder="student@crambrunch.com"/></div>
+          <div class="form-group"><label>Book Title</label><input type="text" id="is-title" placeholder="e.g. Introduction to Algorithms"/></div>
+          <div class="form-group"><label>Book ID / ISBN</label><input type="text" id="is-id" placeholder="e.g. ISBN-12345678"/></div>
+          <div class="form-group"><label>Due Date</label><input type="date" id="is-due"/></div>
+          <button class="btn btn-primary" onclick="issueBook()">Issue Book</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- RECORDS -->
+    <div class="view" id="v-records">
+      <div class="card">
+        <div class="card-header">
+          <h3>📚 All Library Records</h3>
+          <div style="display:flex;gap:.5rem">
+            <select id="lib-filter" onchange="loadRecords()" class="btn btn-secondary btn-sm">
+              <option value="">All Statuses</option>
+              <option value="issued">Currently Issued</option>
+              <option value="returned">Returned</option>
+            </select>
+          </div>
+        </div>
+        <div class="card-body table-wrap">
+          <table>
+            <thead><tr><th>Book Title</th><th>Book ID</th><th>Student</th><th>Issued On</th><th>Due Date</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="lib-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- Return Modal -->
+<div class="modal-backdrop" id="return-modal">
+  <div class="modal-box">
+    <button class="modal-close-btn" onclick="closeModal('return-modal')">✕</button>
+    <h3>Process Book Return</h3>
+    <input type="hidden" id="ret-id"/>
+    <div class="form-group"><label>Fine Amount (₹) - Enter 0 if none</label><input type="number" id="ret-fine" value="0" min="0"/></div>
+    <button class="btn btn-success" onclick="processReturn()">Mark as Returned</button>
+  </div>
+</div>
+
+<script src="../js/app.js"></script>
+<script>
+const user = requireAuth(['librarian']);
+if (user) { initUserUI(user); loadAll(); loadNotifications(); }
+
+async function loadAll() {
+  await loadRecords();
+}
+
+async function loadRecords() {
+  const status = document.getElementById('lib-filter')?.value||'';
+  const data = await apiFetch(`/library/issues${status?'?status='+status:''}`);
+  if (!data.success) return;
+  
+  const records = data.data;
+  
+  // Update stats
+  document.getElementById('h-total').textContent = records.length;
+  document.getElementById('h-issued').textContent = records.filter(r => r.status === 'issued').length;
+  document.getElementById('h-returned').textContent = records.filter(r => r.status === 'returned').length;
+  document.getElementById('h-overdue').textContent = records.filter(r => r.status === 'issued' && new Date(r.dueDate) < new Date()).length;
+  
+  const tbody = document.getElementById('lib-tbody');
+  if (!records.length) { tbody.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--text-muted)">No records found.</td></tr>'; return; }
+  
+  tbody.innerHTML = records.map(r => {
+    const isOverdue = r.status === 'issued' && new Date(r.dueDate) < new Date();
+    const statusHtml = r.status === 'returned' 
+      ? '<span class="badge badge-success">Returned</span>'
+      : (isOverdue ? '<span class="badge badge-danger">Overdue</span>' : '<span class="badge badge-info">Issued</span>');
+      
+    return `<tr>
+      <td style="font-weight:600">${r.bookTitle}</td>
+      <td style="font-family:monospace;font-size:.8rem;color:var(--accent)">${r.bookId}</td>
+      <td>${r.student ? `${r.student.name}<br><span style="font-size:.75rem;color:var(--text-muted)">${r.student.email}</span>` : 'Unknown'}</td>
+      <td style="font-size:.85rem">${formatDate(r.issuedAt)}</td>
+      <td style="font-size:.85rem;color:${isOverdue?'var(--danger)':'inherit'}">${formatDate(r.dueDate)}</td>
+      <td>${statusHtml}</td>
+      <td>
+        ${r.status === 'issued' ? `<button class="btn btn-success btn-xs" onclick="openReturnModal('${r._id}')">Process Return</button>` : `<span style="font-size:.75rem;color:var(--text-muted)">Fine: ₹${r.fine}</span>`}
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+async function issueBook() {
+  const body = {
+    studentEmail: document.getElementById('is-email').value,
+    bookTitle: document.getElementById('is-title').value,
+    bookId: document.getElementById('is-id').value,
+    dueDate: document.getElementById('is-due').value
+  };
+  
+  if (!body.studentEmail || !body.bookTitle || !body.bookId || !body.dueDate) {
+    return showToast('Please fill all fields', 'error');
+  }
+  
+  const data = await apiFetch('/library/issue', { method: 'POST', body: JSON.stringify(body) });
+  if (data.success) {
+    showToast('Book issued successfully!');
+    ['is-email', 'is-title', 'is-id', 'is-due'].forEach(id => document.getElementById(id).value = '');
+    switchView('v-records');
+    loadRecords();
+  } else {
+    showToast(data.message, 'error');
+  }
+}
+
+function openReturnModal(id) {
+  document.getElementById('ret-id').value = id;
+  document.getElementById('ret-fine').value = 0;
+  openModal('return-modal');
+}
+
+async function processReturn() {
+  const id = document.getElementById('ret-id').value;
+  const fine = document.getElementById('ret-fine').value;
+  
+  const data = await apiFetch(`/library/return/${id}`, { 
+    method: 'PUT', 
+    body: JSON.stringify({ fine: Number(fine) || 0 }) 
+  });
+  
+  if (data.success) {
+    showToast('Book returned successfully!');
+    closeModal('return-modal');
+    loadRecords();
+  } else {
+    showToast(data.message, 'error');
+  }
+}
+</script>
+</body>
+</html>

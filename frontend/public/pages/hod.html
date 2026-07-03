@@ -1,0 +1,1168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>HOD Dashboard - CRAMBRUNCH</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="../css/main.css"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <img src="../assets/logo.jpg" alt="Logo" style="height:40px;width:auto;margin-right:10px;border-radius:8px;"/>
+    <span>HOD Portal</span>
+  </div>
+  <div class="sidebar-user">
+    <div class="user-avatar">HD</div>
+    <div class="user-info"><div class="name user-name">HOD</div><div class="role-badge" style="background:rgba(245,158,11,.1);color:var(--warning)">Department Head</div></div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section">
+      <div class="nav-section-title">Overview</div>
+      <a class="nav-item active" data-view="v-home" onclick="switchView('v-home')"><span class="icon">🏠</span><span class="label">Dashboard</span></a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-title">Department</div>
+      <a class="nav-item" data-view="v-courses" onclick="switchView('v-courses')"><span class="icon">📚</span><span class="label">Courses & Durations</span></a>
+      <a class="nav-item" data-view="v-students" onclick="switchView('v-students')"><span class="icon">🎓</span><span class="label">Students</span></a>
+      <a class="nav-item" data-view="v-faculty" onclick="switchView('v-faculty')"><span class="icon">👩‍🏫</span><span class="label">Faculty</span></a>
+      <a class="nav-item" data-view="v-attendance" onclick="switchView('v-attendance')"><span class="icon">📅</span><span class="label">Attendance Reports</span></a>
+      <a class="nav-item" data-view="v-marks" onclick="switchView('v-marks')"><span class="icon">📊</span><span class="label">Marks Overview</span></a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-title">Administration</div>
+      <a class="nav-item" data-view="v-approvals" onclick="switchView('v-approvals')"><span class="icon">✅</span><span class="label">Student Approvals <span class="nav-badge" id="approval-badge">0</span></span></a>
+      <a class="nav-item" data-view="v-create-teacher" onclick="switchView('v-create-teacher')"><span class="icon">➕</span><span class="label">Create Teacher</span></a>
+      <a class="nav-item" data-view="v-grievances" onclick="switchView('v-grievances')"><span class="icon">📢</span><span class="label">Grievances <span class="nav-badge" id="griev-badge">0</span></span></a>
+      <a class="nav-item" data-view="v-timetable" onclick="switchView('v-timetable')"><span class="icon">🗓️</span><span class="label">Timetable</span></a>
+      <a class="nav-item" data-view="v-extra-classes" onclick="switchView('v-extra-classes')"><span class="icon">📚</span><span class="label">Extra Classes</span></a>
+      <a class="nav-item" data-view="v-feedback" onclick="switchView('v-feedback')"><span class="icon">⭐</span><span class="label">Faculty Feedback</span></a>
+      <a class="nav-item" href="micro-internship.html"><span class="icon">🏆</span><span class="label">Micro-Internships</span></a>
+      <a class="nav-item" data-view="v-audit" onclick="switchView('v-audit')"><span class="icon">📋</span><span class="label">Audit Ledger</span></a>
+      <a class="nav-item" data-view="v-elections" onclick="switchView('v-elections')"><span class="icon">🗳️</span><span class="label">CR Elections</span></a>
+    </div>
+  </nav>
+  <div class="sidebar-bottom">
+    <button class="logout-btn" data-logout><span>🚪</span> Logout</button>
+  </div>
+</aside>
+
+<div class="notif-panel">
+  <div class="notif-panel-header">
+    <h3>🔔 Notifications</h3>
+    <div style="display:flex;gap:.5rem;align-items:center">
+      <button class="btn btn-xs btn-secondary" onclick="apiFetch('/notifications/read-all',{method:'PUT'}).then(loadNotifications)">Mark all read</button>
+      <button class="btn btn-xs btn-danger" onclick="toggleNotifPanel()" title="Close Notifications">✕</button>
+    </div>
+  </div>
+  <div class="notif-list"></div>
+</div>
+
+<main class="main">
+  <div class="topbar">
+    <div class="page-title">HOD Dashboard <span id="topbar-dept" class="badge badge-purple" style="margin-left:.75rem;font-size:.85rem;vertical-align:middle;padding:.3rem .6rem"></span></div>
+    <div class="topbar-actions">
+      <button class="notif-btn" onclick="toggleNotifPanel()">Alerts <span class="notif-dot" style="display:none">0</span></button>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <div class="view active" id="v-home">
+      <div style="margin-bottom:1.5rem">
+        <h2 style="font-family:var(--font-head);font-size:1.4rem;font-weight:700">Department Overview</h2>
+        <p style="color:var(--text-muted);font-size:.875rem" id="dept-label">Department operations at a glance</p>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card" onclick="switchView('v-approvals')" style="cursor:pointer" title="View Students"><div class="s-icon">🎓</div><div class="s-val" id="h-students">-</div><div class="s-lbl">Total Students</div></div>
+        <div class="stat-card" onclick="switchView('v-faculty')" style="cursor:pointer" title="Manage Faculty"><div class="s-icon">👩‍🏫</div><div class="s-val" id="h-faculty">-</div><div class="s-lbl">Faculty Members</div></div>
+        <div class="stat-card" onclick="switchView('v-grievances')" style="cursor:pointer" title="View Grievances"><div class="s-icon">📢</div><div class="s-val" id="h-grievances" style="color:var(--danger)">-</div><div class="s-lbl">Open Grievances</div></div>
+        <div class="stat-card" onclick="switchView('v-reports')" style="cursor:pointer" title="View Attendance Reports"><div class="s-icon">⚠️</div><div class="s-val" id="h-below75" style="color:var(--warning)">-</div><div class="s-lbl">Below 75% Attendance</div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem">
+        <div class="card">
+          <div class="card-header"><h3>Grievances by Status</h3></div>
+          <div class="card-body"><div class="chart-wrap"><canvas id="grievChart"></canvas></div></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><h3>Attendance Risk Snapshot</h3></div>
+          <div class="card-body" id="att-risk-summary">
+            <div class="empty-state"><div class="icon">⚠️</div><p>Generate the attendance report to see the current risk list.</p></div>
+          </div>
+        </div>
+      </div>
+      <div class="card" style="margin-top:1.5rem">
+        <div class="card-header">
+          <h3>Holiday Calendar</h3>
+          <button class="btn btn-primary btn-sm" onclick="saveHolidays()">Save Holidays</button>
+        </div>
+        <div class="card-body">
+          <div style="display:flex;gap:1rem;margin-bottom:1rem">
+            <input type="text" id="new-holiday-name" placeholder="e.g. Diwali" style="flex:2">
+            <input type="date" id="new-holiday-date" style="flex:1">
+            <button class="btn btn-secondary" onclick="addHoliday()">Add Holiday</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Holiday Name</th><th>Date</th><th>Action</th></tr></thead>
+              <tbody id="holidays-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="view" id="v-courses">
+      <div class="card">
+        <div class="card-header">
+          <h3>Department Courses</h3>
+          <button class="btn btn-primary btn-sm" onclick="saveCourses()">Save Courses</button>
+        </div>
+        <div class="card-body">
+          <p style="color:var(--text-muted);font-size:.875rem;margin-bottom:1.5rem">Manage the courses and programs offered by your department.</p>
+          <div style="display:flex;gap:1rem;margin-bottom:1rem">
+            <input type="text" id="new-course-name" placeholder="e.g. B.Tech Computer Science" style="flex:2">
+            <input type="number" id="new-course-years" placeholder="Duration (Years)" style="flex:1" min="1" max="10">
+            <button class="btn btn-secondary" onclick="addCourse()">Add Course</button>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Course Name</th><th>Duration (Years)</th><th>Subjects</th><th>Action</th></tr></thead>
+              <tbody id="courses-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="view" id="v-students">
+      <div class="card">
+        <div class="card-header">
+          <h3>Department Students</h3>
+          <div style="display:flex;gap:.5rem;align-items:center">
+            <select id="sem-filter" onchange="loadStudents()" class="btn btn-secondary btn-sm">
+              <option value="">All Semesters</option>
+              <option>1</option><option>2</option><option>3</option><option selected>4</option><option>5</option><option>6</option>
+            </select>
+            <input type="text" placeholder="Search..." oninput="filterStudents()" id="s-search" style="padding:.4rem .8rem;background:var(--primary);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:.8rem"/>
+          </div>
+        </div>
+        <div class="card-body table-wrap">
+          <table><thead><tr><th>Name</th><th>Roll No</th><th>Semester</th><th>Parent Email</th><th>CR</th><th>Action</th></tr></thead><tbody id="students-tbody"></tbody></table>
+        </div>
+      </div>
+    </div>
+
+    <div class="view" id="v-faculty">
+      <div class="card">
+        <div class="card-header"><h3>Faculty Roster</h3></div>
+        <div class="card-body table-wrap">
+          <table><thead><tr><th>Name</th><th>Email</th><th>Course</th><th>Semester</th><th>Subjects</th><th>Qualification</th></tr></thead><tbody id="faculty-tbody"></tbody></table>
+        </div>
+      </div>
+    </div>
+
+    <div class="view" id="v-attendance">
+      <div class="card">
+        <div class="card-header">
+          <h3>Attendance Overview</h3>
+          <button class="btn btn-primary btn-sm" onclick="loadAttReport()">Generate Report</button>
+        </div>
+        <div class="card-body">
+          <p style="color:var(--text-muted);font-size:.875rem;margin-bottom:1.5rem">Students with attendance below 75% across any subject are flagged below.</p>
+          <div id="att-report"><div class="empty-state"><div class="icon">📅</div><p>Click "Generate Report" to load data.</p></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="view" id="v-marks">
+      <div class="card">
+        <div class="card-header"><h3>Department Marks Overview</h3></div>
+        <div class="card-body">
+          <div id="marks-overview"><div class="empty-state"><div class="icon">📊</div><p>Marks insights can be extended here once department summaries are added.</p></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="view" id="v-approvals">
+      <div class="card">
+        <div class="card-header">
+          <h3>Pending Student Approvals</h3>
+          <button class="btn btn-secondary btn-sm" onclick="loadPendingStudents()">Refresh</button>
+        </div>
+        <div class="card-body table-wrap">
+          <table>
+            <thead><tr><th>Student</th><th>Roll No</th><th>Semester</th><th>Parent</th><th>Registered</th><th>Action</th></tr></thead>
+            <tbody id="pending-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="view" id="v-create-teacher">
+      <div class="card">
+        <div class="card-header"><h3>Create Teacher Account</h3></div>
+        <div class="card-body">
+          <div class="form-row">
+            <div class="form-group"><label>Full Name</label><input type="text" id="teacher-name" placeholder="Teacher name"/></div>
+            <div class="form-group"><label>Email</label><input type="email" id="teacher-email" placeholder="teacher@college.edu"/></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>Department</label><input type="text" id="teacher-department" placeholder="Department" disabled style="background:var(--bg);color:var(--text-muted)"/></div>
+            <div class="form-group"><label>Course</label><select id="teacher-course" onchange="updateTeacherSubjectOptions()"><option value="">Select a course...</option></select></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>Phone</label><input type="tel" id="teacher-phone" placeholder="Contact number"/></div>
+            <div class="form-group"><label>Semester</label><select id="teacher-semester" onchange="updateTeacherSubjectOptions()"><option value="">Select semester...</option><option>1</option><option>2</option><option>3</option><option selected>4</option><option>5</option><option>6</option><option>7</option><option>8</option></select></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>Subjects</label><div id="teacher-subjects" style="min-height:44px;padding:.65rem;background:var(--primary);border:1px solid var(--border);border-radius:8px"></div></div>
+            <div class="form-group"><label>Qualification</label><input type="text" id="teacher-qualification" placeholder="M.Tech / PhD"/></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>Experience (Years)</label><input type="number" id="teacher-experience" min="0" placeholder="5"/></div>
+          </div>
+          <p style="color:var(--text-muted);font-size:.85rem;margin-bottom:1rem">A temporary password will be generated automatically and emailed to the teacher.</p>
+          <button class="btn btn-primary" onclick="createTeacherAccount()">Create Teacher</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="view" id="v-grievances">
+      <div class="card">
+        <div class="card-header">
+          <h3>Grievance Management</h3>
+          <div style="display:flex;gap:.5rem">
+            <select id="griev-status-filter" onchange="loadGrievances()" class="btn btn-secondary btn-sm">
+              <option value="">All</option>
+              <option value="open">Open</option>
+              <option value="in_progress">In Progress</option>
+              <option value="escalated">Escalated</option>
+              <option value="resolved">Resolved</option>
+            </select>
+          </div>
+        </div>
+        <div class="card-body table-wrap">
+          <table>
+            <thead><tr><th>Ticket</th><th>Title</th><th>Category</th><th>Student</th><th>Status</th><th>Date</th><th>Action</th></tr></thead>
+            <tbody id="griev-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="view" id="v-timetable">
+      <div class="card" style="margin-bottom:1.5rem">
+        <div class="card-header"><h3>Add Timetable Entry</h3></div>
+        <div class="card-body">
+          <div class="form-row">
+            <div class="form-group"><label>Day</label>
+              <select id="tt-day"><option>Monday</option><option>Tuesday</option><option>Wednesday</option><option>Thursday</option><option>Friday</option></select></div>
+            <div class="form-group"><label>Time Slot</label>
+              <select id="tt-slot"><option>09:00-10:00</option><option>10:00-11:00</option><option>11:00-12:00</option><option>12:00-13:00</option><option>14:00-15:00</option><option>15:00-16:00</option></select></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>Subject</label><input type="text" id="tt-subject" placeholder="Subject name"/></div>
+            <div class="form-group"><label>Room</label><input type="text" id="tt-room" placeholder="e.g. Lab 3"/></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>Teacher</label><select id="tt-teacher"><option value="">Select teacher...</option></select></div>
+            <div class="form-group"><label>Semester</label><select id="tt-sem"><option>1</option><option>2</option><option>3</option><option selected>4</option><option>5</option><option>6</option></select></div>
+          </div>
+          <button class="btn btn-primary" onclick="addTimetableEntry()">Add Entry</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><h3>Department Timetable - Sem <select id="tt-view-sem" onchange="loadTimetable()" style="background:var(--primary);border:1px solid var(--border);border-radius:6px;color:var(--text);padding:.2rem .5rem;font-size:.85rem"><option>1</option><option>2</option><option>3</option><option selected>4</option><option>5</option><option>6</option></select></h3></div>
+        <div class="card-body"><div style="overflow-x:auto"><table class="timetable" id="tt-table"></table></div></div>
+      </div>
+    </div>
+
+    <div class="view" id="v-extra-classes">
+      <div class="card">
+        <div class="card-header"><h3>Extra Class Requests</h3><button class="btn btn-secondary btn-sm" onclick="loadExtraClasses()">Refresh</button></div>
+        <div class="card-body table-wrap">
+          <table>
+            <thead><tr><th>Subject</th><th>Teacher</th><th>Day</th><th>Slot</th><th>Status</th><th>Action</th></tr></thead>
+            <tbody id="extra-class-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="view" id="v-feedback">
+      <div class="card">
+        <div class="card-header"><h3>Faculty Feedback Ratings</h3></div>
+        <div class="card-body" id="fb-overview"></div>
+      </div>
+    </div>
+
+    <div class="view" id="v-audit">
+      <iframe src="audit.html" style="width:100%;height:calc(100vh - 80px);border:none;border-radius:12px;"></iframe>
+    </div>
+
+    <div class="view" id="v-elections">
+      <div class="card" style="margin-bottom:1.5rem">
+        <div class="card-header"><h3>🚀 Start CR Election</h3></div>
+        <div class="card-body">
+          <div class="form-row">
+            <div class="form-group"><label>Title</label><input type="text" id="el-title" placeholder="e.g. CR Selection 2024 — Sem 4"/></div>
+            <div class="form-group"><label>Target Semester</label><select id="el-sem"><option>1</option><option>2</option><option>3</option><option selected>4</option><option>5</option><option>6</option></select></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>Start Date & Time</label><input type="datetime-local" id="el-start"/></div>
+            <div class="form-group"><label>End Date & Time</label><input type="datetime-local" id="el-end"/></div>
+          </div>
+          <div class="form-group"><label>Description / Guidelines</label><textarea id="el-desc" placeholder="Nomination rules, manifesto requirements…"></textarea></div>
+          <button class="btn btn-primary" onclick="startElection()">Start Election</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><h3>⚙️ Manage Active Elections</h3></div>
+        <div class="card-body" id="el-management-list"></div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<div class="modal-backdrop" id="griev-modal">
+  <div class="modal-box">
+    <button class="modal-close-btn" onclick="closeModal('griev-modal')">x</button>
+    <h3>Update Grievance</h3>
+    <input type="hidden" id="griev-id"/>
+    <div class="form-group">
+      <label>Update Status</label>
+      <select id="griev-new-status">
+        <option value="in_progress">In Progress</option>
+        <option value="resolved">Resolved</option>
+        <option value="closed">Closed</option>
+        <option value="escalated">Escalate to Admin</option>
+      </select>
+    </div>
+    <div class="form-group"><label>Comment / Response</label><textarea id="griev-comment" placeholder="Add a response to the student..."></textarea></div>
+    <button class="btn btn-primary" onclick="updateGrievance()">Update</button>
+  </div>
+</div>
+
+<script src="../js/app.js"></script>
+<script>
+const user = requireAuth(['hod','super_admin']);
+if (user) {
+  initUserUI(user);
+  document.getElementById('dept-label').textContent = `${user.department || 'Department'} operations at a glance`;
+  document.getElementById('topbar-dept').textContent = user.department || 'Department';
+  loadAll();
+  loadNotifications();
+}
+
+let allStudents = [];
+let allFaculty = [];
+let pendingStudents = [];
+
+let deptCourses = [];
+let editingCourseIndex = null;
+let editingCourseData = null;
+
+async function loadAll() {
+  const deptInput = document.getElementById('teacher-department');
+  if (deptInput && !deptInput.value) deptInput.value = user.department || 'Computer Science';
+
+  await Promise.all([
+    loadDepartmentInfo(),
+    loadStudents(),
+    loadFaculty(),
+    loadPendingStudents(),
+    loadGrievances(),
+    loadExtraClasses(),
+    loadFeedbackOverview(),
+    loadTimetable(),
+    loadSystemConfig(),
+    loadElections()
+  ]);
+}
+
+let configHolidays = [];
+
+async function loadSystemConfig() {
+  const data = await apiFetch('/config');
+  if (data.success && data.data) {
+    configHolidays = data.data.holidays || [];
+    renderConfigArrays();
+  }
+}
+
+function renderConfigArrays() {
+  const hBody = document.getElementById('holidays-tbody');
+  if (hBody) {
+    hBody.innerHTML = configHolidays.map((h, i) => `<tr>
+      <td>${h.name}</td>
+      <td>${new Date(h.date).toLocaleDateString()}</td>
+      <td><button class="btn btn-danger btn-xs" onclick="removeHoliday(${i})">Remove</button></td>
+    </tr>`).join('');
+  }
+}
+
+function addHoliday() {
+  const name = document.getElementById('new-holiday-name').value;
+  const date = document.getElementById('new-holiday-date').value;
+  if (!name || !date) return;
+  configHolidays.push({ name, date });
+  document.getElementById('new-holiday-name').value = '';
+  document.getElementById('new-holiday-date').value = '';
+  renderConfigArrays();
+}
+
+function removeHoliday(idx) {
+  configHolidays.splice(idx, 1);
+  renderConfigArrays();
+}
+
+async function saveHolidays() {
+  const data = await apiFetch('/config', {
+    method: 'PUT',
+    body: JSON.stringify({ 
+      holidays: configHolidays
+    })
+  });
+  
+  if (data.success) {
+    showToast('Holiday Calendar saved successfully!');
+  } else {
+    showToast(data.message, 'error');
+  }
+}
+
+async function loadDepartmentInfo() {
+  const data = await apiFetch('/departments/my-department');
+  if (data.success && data.data) {
+    deptCourses = data.data.courses || [];
+    renderCourses();
+  }
+}
+
+function escapeHtml(str) {
+  return (str || '').toString().replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+function renderCourses() {
+  const tbody = document.getElementById('courses-tbody');
+  if (tbody) {
+    tbody.innerHTML = deptCourses.map((c, i) => {
+      // If structured years exist, render nested years/semesters
+      let content = '';
+      const isEditing = editingCourseIndex === i;
+      if (isEditing) {
+        // render edit form inline
+        return `<tr>
+          <td colspan="4">
+            <div style="display:flex;gap:1rem;align-items:center">
+              <input id="edit-course-name-${i}" type="text" value="${escapeHtml(c.name || '')}" style="flex:2;padding:.4rem" />
+              <input id="edit-course-years-${i}" type="number" value="${c.durationYears||1}" min="1" style="width:110px;padding:.4rem" />
+              <div style="display:flex;gap:.5rem">
+                <button class="btn btn-primary btn-sm" onclick="saveCourseEdit(${i})">Save</button>
+                <button class="btn btn-secondary btn-sm" onclick="cancelCourseEdit()">Cancel</button>
+              </div>
+            </div>
+          </td>
+        </tr>`;
+      }
+      if (Array.isArray(c.years) && c.years.length) {
+        content = c.years.map((y, yi) => {
+          const sems = (y.semesters || []).map((s, si) => {
+            const subs = (s.subjects || []).map((sub, sj) => `<span class="badge badge-info" style="margin-right:4px; margin-bottom:4px; display:inline-flex; align-items:center; gap:4px">${sub} <span style="cursor:pointer;color:red;font-weight:bold" onclick="removeSubjectFromSemester(${i}, ${yi}, ${si}, ${sj})">&times;</span></span>`).join('');
+            return `<div style="margin-bottom:.4rem"><strong>Sem ${s.semNumber}</strong>: ${subs} <button class="btn btn-secondary btn-xs" onclick="addSubjectToSemester(${i}, ${yi}, ${si})">+ Subject</button> <button class="btn btn-danger btn-xs" onclick="removeSemesterFromYear(${i}, ${yi}, ${si})">Remove Sem</button></div>`;
+          }).join('');
+
+          return `<div style="margin-bottom:.6rem"><div style="font-weight:600">Year ${y.yearNumber}</div>${sems}<div style="margin-top:.25rem"><button class="btn btn-secondary btn-xs" onclick="addSemesterToYear(${i}, ${yi})">+ Semester</button> <button class="btn btn-danger btn-xs" onclick="removeYearFromCourse(${i}, ${yi})">Remove Year</button></div></div>`;
+        }).join('');
+      } else {
+        // fallback to flat subjects list
+        const subjectsHtml = (c.subjects || []).map((s, j) => `<span class="badge badge-info" style="margin-right:4px; margin-bottom:4px; display:inline-flex; align-items:center; gap:4px">${s} <span style="cursor:pointer; color:red; font-weight:bold" onclick="removeSubjectFromCourse(${i}, ${j})">&times;</span></span>`).join('') + `<button class="btn btn-secondary btn-xs" style="margin-left:5px" onclick="addSubjectToCourse(${i})">+ Subject</button>`;
+        content = subjectsHtml;
+      }
+
+      return `<tr>
+        <td><strong>${escapeHtml(c.name)}</strong></td>
+        <td>${c.durationYears} Years</td>
+        <td style="max-width: 500px; line-height: 1.6;">${content}</td>
+        <td style="display:flex;gap:.5rem"><button class="btn btn-secondary btn-xs" onclick="editCourse(${i})">Edit</button><button class="btn btn-danger btn-xs" onclick="removeCourse(${i})">Remove</button></td>
+      </tr>`;
+    }).join('');
+  }
+  
+  const courseSelect = document.getElementById('teacher-course');
+  if (courseSelect) {
+    courseSelect.innerHTML = `<option value="">Select a course...</option>${deptCourses.map(c => `<option value="${c.name}">${c.name}</option>`).join('')}`;
+  }
+  updateTeacherSubjectOptions();
+}
+
+function getCourseSubjectsForSemester(course, semester) {
+  const subjects = [];
+  if (Array.isArray(course?.years)) {
+    course.years.forEach(year => {
+      (year.semesters || []).forEach(sem => {
+        if (!semester || Number(sem.semNumber) === Number(semester)) {
+          subjects.push(...(sem.subjects || []));
+        }
+      });
+    });
+  }
+  if (!subjects.length && Array.isArray(course?.subjects)) {
+    subjects.push(...course.subjects);
+  }
+  return [...new Set(subjects.map(s => String(s).trim()).filter(Boolean))];
+}
+
+function updateTeacherSubjectOptions() {
+  const courseName = document.getElementById('teacher-course')?.value;
+  const semester = document.getElementById('teacher-semester')?.value;
+  const subjectBox = document.getElementById('teacher-subjects');
+  if (!subjectBox) return;
+
+  const course = deptCourses.find(c => c.name === courseName);
+  const subjects = getCourseSubjectsForSemester(course, semester);
+
+  if (!courseName) {
+    subjectBox.innerHTML = '<span style="color:var(--text-muted);font-size:.85rem">Select a course first...</span>';
+    return;
+  }
+
+  if (!subjects.length) {
+    subjectBox.innerHTML = '<span style="color:var(--text-muted);font-size:.85rem">No subjects found for this semester.</span>';
+    return;
+  }
+
+  subjectBox.innerHTML = `<div style="display:flex;flex-wrap:wrap;gap:.6rem">${subjects.map(subject => `
+    <label style="display:inline-flex;align-items:center;gap:.4rem;padding:.45rem .65rem;background:var(--surface2);border:1px solid var(--border);border-radius:8px;cursor:pointer;font-size:.85rem">
+      <input type="checkbox" value="${escapeHtml(subject)}" style="accent-color:var(--accent)"/>
+      <span>${escapeHtml(subject)}</span>
+    </label>
+  `).join('')}</div>`;
+}
+
+function addCourse() {
+  const name = document.getElementById('new-course-name').value;
+  const years = parseInt(document.getElementById('new-course-years').value, 10);
+  if (!name || !years || isNaN(years)) return;
+  const newCourse = { name, durationYears: years, subjects: [], years: [] };
+  // initialize years and semesters
+  for (let y = 1; y <= years; y++) {
+    const semesters = [];
+    // assume 2 semesters per year as common default
+    for (let s = 1; s <= 2; s++) semesters.push({ semNumber: (y - 1) * 2 + s, subjects: [] });
+    newCourse.years.push({ yearNumber: y, semesters });
+  }
+  deptCourses.push(newCourse);
+  renderCourses();
+  document.getElementById('new-course-name').value = '';
+  document.getElementById('new-course-years').value = '';
+}
+
+function removeCourse(index) {
+  deptCourses.splice(index, 1);
+  renderCourses();
+}
+
+function addSubjectToCourse(courseIndex) {
+  const subjectName = prompt('Enter new subject name for this course (will add to flat list):');
+  if (!subjectName || !subjectName.trim()) return;
+  if (!deptCourses[courseIndex].subjects) deptCourses[courseIndex].subjects = [];
+  deptCourses[courseIndex].subjects.push(subjectName.trim());
+  renderCourses();
+}
+
+function removeSubjectFromCourse(courseIndex, subjectIndex) {
+  if (confirm('Remove this subject?')) {
+    deptCourses[courseIndex].subjects.splice(subjectIndex, 1);
+    renderCourses();
+  }
+}
+
+function editCourse(index) {
+  editingCourseIndex = index;
+  editingCourseData = { ...deptCourses[index] };
+  renderCourses();
+}
+
+function cancelCourseEdit() {
+  editingCourseIndex = null;
+  editingCourseData = null;
+  renderCourses();
+}
+
+async function saveCourseEdit(index) {
+  const nameEl = document.getElementById(`edit-course-name-${index}`);
+  const yearsEl = document.getElementById(`edit-course-years-${index}`);
+  if (!nameEl || !yearsEl) return;
+  const name = nameEl.value.trim();
+  const years = parseInt(yearsEl.value, 10);
+  if (!name || !years || isNaN(years)) return showToast('Please provide valid name and duration','error');
+
+  const course = deptCourses[index];
+  course.name = name;
+  // Adjust duration and years structure
+  const prevYears = Array.isArray(course.years) ? course.years.length : 0;
+  course.durationYears = years;
+  if (!Array.isArray(course.years)) course.years = [];
+  if (years > prevYears) {
+    for (let y = prevYears + 1; y <= years; y++) {
+      course.years.push({ yearNumber: y, semesters: [{ semNumber: (y - 1) * 2 + 1, subjects: [] }, { semNumber: (y - 1) * 2 + 2, subjects: [] }] });
+    }
+  } else if (years < prevYears) {
+    course.years = course.years.slice(0, years);
+  }
+
+  // Persist full courses list (server expects full array)
+  const res = await apiFetch('/departments/my-department/courses', { method: 'PUT', body: JSON.stringify({ courses: deptCourses }) });
+  if (res.success) {
+    showToast('Course saved');
+  } else {
+    showToast(res.message || 'Failed to save course','error');
+  }
+
+  editingCourseIndex = null;
+  editingCourseData = null;
+  renderCourses();
+}
+
+// Year / Semester helpers
+function addYearToCourse(courseIndex) {
+  const course = deptCourses[courseIndex];
+  const nextYear = (course.years?.length || 0) + 1;
+  if (!course.years) course.years = [];
+  course.years.push({ yearNumber: nextYear, semesters: [{ semNumber: (nextYear - 1) * 2 + 1, subjects: [] }, { semNumber: (nextYear - 1) * 2 + 2, subjects: [] }] });
+  renderCourses();
+}
+
+function removeYearFromCourse(courseIndex, yearIndex) {
+  if (!confirm('Remove this year and all its semesters/subjects?')) return;
+  deptCourses[courseIndex].years.splice(yearIndex, 1);
+  renderCourses();
+}
+
+function addSemesterToYear(courseIndex, yearIndex) {
+  const year = deptCourses[courseIndex].years[yearIndex];
+  const nextSemNumber = (year.semesters?.length ? year.semesters[year.semesters.length - 1].semNumber + 1 : (year.yearNumber - 1) * 2 + 1);
+  if (!year.semesters) year.semesters = [];
+  year.semesters.push({ semNumber: nextSemNumber, subjects: [] });
+  renderCourses();
+}
+
+function removeSemesterFromYear(courseIndex, yearIndex, semIndex) {
+  if (!confirm('Remove this semester and its subjects?')) return;
+  deptCourses[courseIndex].years[yearIndex].semesters.splice(semIndex, 1);
+  renderCourses();
+}
+
+function addSubjectToSemester(courseIndex, yearIndex, semIndex) {
+  const subjectName = prompt('Enter subject name for this semester:');
+  if (!subjectName || !subjectName.trim()) return;
+  const sem = deptCourses[courseIndex].years[yearIndex].semesters[semIndex];
+  if (!sem.subjects) sem.subjects = [];
+  sem.subjects.push(subjectName.trim());
+  renderCourses();
+}
+
+function removeSubjectFromSemester(courseIndex, yearIndex, semIndex, subjectIndex) {
+  if (!confirm('Remove this subject from semester?')) return;
+  deptCourses[courseIndex].years[yearIndex].semesters[semIndex].subjects.splice(subjectIndex, 1);
+  renderCourses();
+}
+
+async function saveCourses() {
+  const data = await apiFetch('/departments/my-department/courses', {
+    method: 'PUT',
+    body: JSON.stringify({ courses: deptCourses })
+  });
+  if (data.success) {
+    showToast('Courses saved successfully!');
+  } else {
+    showToast(data.message || 'Failed to save courses', 'error');
+  }
+}
+
+async function loadStudents() {
+  const sem = document.getElementById('sem-filter')?.value || '';
+  const data = await apiFetch(`/students?department=${encodeURIComponent(user.department || 'Computer Science')}${sem ? `&semester=${sem}` : ''}`);
+  if (!data.success) return;
+  allStudents = data.data || [];
+  document.getElementById('h-students').textContent = allStudents.length;
+  renderStudentsTable(allStudents);
+}
+
+function renderStudentsTable(students) {
+  const tbody = document.getElementById('students-tbody');
+  if (!students.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-muted)">No students found.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = students.map(s => {
+    const isCr = s.isCR;
+    const crBadge = isCr ? `<span class="badge badge-success">CR</span>` : '';
+    const actionBtn = (user && (user.role === 'hod' || user.role === 'super_admin'))
+      ? `<button class="btn btn-primary btn-xs" onclick="selectCr('${s._id}')">${isCr ? 'Reassign' : 'Select CR'}</button>`
+      : '';
+    return `<tr>
+      <td><strong>${s.name}</strong></td>
+      <td style="font-family:monospace;font-size:.85rem;color:var(--accent)">${s.rollNumber || '-'}</td>
+      <td>Sem ${s.semester}</td>
+      <td style="color:var(--text-muted);font-size:.8rem">${s.parentEmail || '-'}</td>
+      <td style="text-align:center">${crBadge}</td>
+      <td style="text-align:center">${actionBtn}</td>
+    </tr>`;
+  }).join('');
+}
+
+async function selectCr(studentId) {
+  if (!confirm('Assign this student as Class Representative? This will replace any existing CR for the class.')) return;
+  const data = await apiFetch(`/students/${studentId}/select-cr`, { method: 'POST' });
+  if (!data.success) {
+    showToast(data.message || 'Failed to assign CR', 'error');
+    return;
+  }
+  showToast('Class Representative assigned.');
+  await loadStudents();
+}
+
+function filterStudents() {
+  const q = document.getElementById('s-search').value.toLowerCase();
+  renderStudentsTable(allStudents.filter(s => s.name.toLowerCase().includes(q) || (s.rollNumber || '').toLowerCase().includes(q)));
+}
+
+async function loadFaculty() {
+  const data = await apiFetch('/auth/teachers');
+  const tbody = document.getElementById('faculty-tbody');
+  const teacherSelect = document.getElementById('tt-teacher');
+
+  if (!data.success) {
+    document.getElementById('h-faculty').textContent = '-';
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-muted)">Unable to load faculty.</td></tr>';
+    return;
+  }
+
+  allFaculty = data.teachers || [];
+  document.getElementById('h-faculty').textContent = allFaculty.length;
+
+  if (!allFaculty.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-muted)">No teachers added yet.</td></tr>';
+  } else {
+    tbody.innerHTML = allFaculty.map(t => `<tr>
+      <td><strong>${t.name}</strong></td>
+      <td style="font-size:.82rem;color:var(--text-muted)">${t.email}</td>
+      <td><span class="badge badge-purple">${t.course || 'General'}</span></td>
+      <td><span class="badge badge-info">Sem ${t.semester || '-'}</span></td>
+      <td style="font-size:.82rem">${(t.subjects || []).join(', ') || '-'}</td>
+      <td><span class="badge badge-info">${t.qualification || 'Profile ready'}</span></td>
+    </tr>`).join('');
+  }
+
+  if (teacherSelect) {
+    teacherSelect.innerHTML = `<option value="">Select teacher...</option>${allFaculty.map(t => `<option value="${t._id}">${t.name}</option>`).join('')}`;
+  }
+}
+
+async function resendTeacherCredentials(id) {
+  const data = await apiFetch(`/auth/resend-teacher-credentials/${id}`, { method: 'POST' });
+  if (data.success) {
+    showToast('Credentials emailed to teacher successfully!');
+  } else {
+    showToast(data.message || 'Failed to resend credentials', 'error');
+  }
+}
+
+async function loadPendingStudents() {
+  const data = await apiFetch('/auth/pending-students');
+  const tbody = document.getElementById('pending-tbody');
+  const badge = document.getElementById('approval-badge');
+
+  if (!data.success) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-muted)">Unable to load pending approvals.</td></tr>';
+    if (badge) badge.textContent = '';
+    return;
+  }
+
+  pendingStudents = data.students || [];
+  if (badge) badge.textContent = pendingStudents.length > 0 ? pendingStudents.length : '';
+
+  if (!pendingStudents.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-muted)">No pending students right now.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = pendingStudents.map(s => `<tr>
+    <td><strong>${s.name}</strong><div style="font-size:.78rem;color:var(--text-muted)">${s.email}</div></td>
+    <td style="font-family:monospace;font-size:.82rem;color:var(--accent)">${s.rollNumber || '-'}</td>
+    <td>Sem ${s.semester || '-'}</td>
+    <td style="font-size:.8rem;color:var(--text-muted)">${s.parentName || 'Parent'}<br/>${s.parentEmail || '-'}</td>
+    <td style="font-size:.8rem;color:var(--text-muted)">${formatDate(s.createdAt)}</td>
+    <td style="display:flex;gap:.5rem;flex-wrap:wrap">
+      <button class="btn btn-success btn-xs" onclick="approveStudent('${s._id}')">Approve</button>
+      <button class="btn btn-danger btn-xs" onclick="rejectStudent('${s._id}')">Reject</button>
+    </td>
+  </tr>`).join('');
+}
+
+async function approveStudent(id) {
+  const data = await apiFetch(`/auth/approve-student/${id}`, { method: 'POST' });
+  if (!data.success) {
+    showToast(data.message || 'Approval failed', 'error');
+    return;
+  }
+
+  const message = data.parentAccountCreated
+    ? 'Student approved and parent portal created.'
+    : data.parentPortalReady
+      ? 'Student approved and parent linked.'
+      : 'Student approved successfully.';
+
+  showToast(message);
+  await Promise.all([loadPendingStudents(), loadStudents()]);
+}
+
+async function rejectStudent(id) {
+  const data = await apiFetch(`/auth/reject-student/${id}`, { method: 'POST' });
+  if (!data.success) {
+    showToast(data.message || 'Rejection failed', 'error');
+    return;
+  }
+
+  showToast('Student rejected.');
+  await loadPendingStudents();
+}
+
+async function createTeacherAccount() {
+  const body = {
+    name: document.getElementById('teacher-name').value.trim(),
+    email: document.getElementById('teacher-email').value.trim(),
+    department: document.getElementById('teacher-department').value.trim() || user.department || 'Computer Science',
+    course: document.getElementById('teacher-course').value.trim(),
+    semester: Number(document.getElementById('teacher-semester').value),
+    phone: document.getElementById('teacher-phone').value.trim(),
+    subjects: [...document.querySelectorAll('#teacher-subjects input[type="checkbox"]:checked')].map(input => input.value).filter(Boolean),
+    qualification: document.getElementById('teacher-qualification').value.trim(),
+    experience: Number(document.getElementById('teacher-experience').value || 0)
+  };
+
+  if (!body.name || !body.email || !body.department || !body.course || !body.semester) {
+    showToast('Name, email, department, course, and semester are required.', 'error');
+    return;
+  }
+
+  if (!body.subjects.length) {
+    showToast('Please select at least one subject for this teacher.', 'error');
+    return;
+  }
+
+  const data = await apiFetch('/auth/create-teacher', { method: 'POST', body: JSON.stringify(body) });
+  if (!data.success) {
+    showToast(data.message || 'Teacher creation failed.', 'error');
+    return;
+  }
+
+  showToast('Teacher account created and emailed successfully.');
+  ['teacher-name', 'teacher-email', 'teacher-phone', 'teacher-qualification', 'teacher-experience', 'teacher-course', 'teacher-semester'].forEach(id => {
+    document.getElementById(id).value = '';
+  });
+  document.getElementById('teacher-department').value = user.department || 'Computer Science';
+  updateTeacherSubjectOptions();
+  await loadFaculty();
+}
+
+async function loadGrievances() {
+  const status = document.getElementById('griev-status-filter')?.value || '';
+  const data = await apiFetch(`/grievances${status ? `?status=${status}` : ''}`);
+  if (!data.success) return;
+
+  const grievances = data.data || [];
+  const open = grievances.filter(g => g.status === 'open' || g.status === 'escalated').length;
+  document.getElementById('h-grievances').textContent = open;
+  const badge = document.getElementById('griev-badge');
+  if (badge) badge.textContent = open > 0 ? open : '';
+
+  const tbody = document.getElementById('griev-tbody');
+  if (!grievances.length) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text-muted)">No grievances found.</td></tr>';
+  } else {
+    const colors = { open:'badge-info', in_progress:'badge-warning', escalated:'badge-danger', resolved:'badge-success', closed:'badge-purple' };
+    tbody.innerHTML = grievances.map(g => `<tr>
+      <td style="font-family:monospace;font-size:.78rem;color:var(--accent)">${g.isAnonymous ? '🔒 ' : ''}${g.ticketId}</td>
+      <td style="font-weight:500;max-width:180px">${g.title}</td>
+      <td><span class="badge badge-purple">${g.category}</span></td>
+      <td style="font-size:.8rem">${g.identityProtected ? '<span style="color:var(--text-muted)">🔒 Anonymous Student</span>' : (g.studentLabel || g.submittedBy?.name || '-')}</td>
+      <td><span class="badge ${colors[g.status]}">${g.status.replace('_',' ')}</span></td>
+      <td style="color:var(--text-muted);font-size:.78rem">${formatDate(g.createdAt)}</td>
+      <td><button class="btn btn-secondary btn-xs" onclick="openGrievModal('${g._id}')">Respond</button></td>
+    </tr>`).join('');
+  }
+
+  const counts = { open:0, in_progress:0, escalated:0, resolved:0, closed:0 };
+  grievances.forEach(g => counts[g.status] = (counts[g.status] || 0) + 1);
+  const ctx = document.getElementById('grievChart');
+  if (ctx) {
+    if (window._gChart) window._gChart.destroy();
+    window._gChart = new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: Object.keys(counts),
+        datasets: [{ data: Object.values(counts), backgroundColor: ['rgba(0,229,255,.6)','rgba(245,158,11,.6)','rgba(239,68,68,.6)','rgba(0,200,150,.6)','rgba(124,58,237,.6)'] }]
+      },
+      options: { responsive:true, maintainAspectRatio:false, plugins:{ legend:{ labels:{ color:'#7a9bb5' } } } }
+    });
+  }
+}
+
+function openGrievModal(id) {
+  document.getElementById('griev-id').value = id;
+  openModal('griev-modal');
+}
+
+async function updateGrievance() {
+  const id = document.getElementById('griev-id').value;
+  const status = document.getElementById('griev-new-status').value;
+  const comment = document.getElementById('griev-comment').value;
+  const data = await apiFetch(`/grievances/${id}/status`, { method:'PUT', body:JSON.stringify({ status, comment }) });
+  if (data.success) {
+    showToast('Grievance updated!');
+    closeModal('griev-modal');
+    loadGrievances();
+  } else {
+    showToast(data.message, 'error');
+  }
+}
+
+async function loadAttReport() {
+  const data = await apiFetch(`/students?department=${encodeURIComponent(user.department || 'Computer Science')}`);
+  if (!data.success) return;
+
+  const reportDiv = document.getElementById('att-report');
+  reportDiv.innerHTML = '<p style="color:var(--text-muted);font-size:.875rem;margin-bottom:1rem">Generating report...</p>';
+  const rows = [];
+
+  for (const s of (data.data || []).slice(0, 20)) {
+    const att = await apiFetch(`/attendance/summary/${s._id}`);
+    const summaries = att.data || [];
+    const avgAtt = summaries.length ? (summaries.reduce((sum, d) => sum + d.percentage, 0) / summaries.length).toFixed(1) : 'N/A';
+    const flag = summaries.some(d => d.percentage < 75);
+    rows.push({ name:s.name, roll:s.rollNumber, avgAtt, flag });
+  }
+
+  const flagged = rows.filter(r => r.flag).length;
+  document.getElementById('h-below75').textContent = flagged;
+  document.getElementById('att-risk-summary').innerHTML = flagged
+    ? `<div style="display:flex;flex-direction:column;gap:.75rem">${rows.filter(r => r.flag).slice(0,5).map(r => `<div style="padding:.9rem 1rem;background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.18);border-radius:10px"><strong>${r.name}</strong><div style="font-size:.8rem;color:var(--text-muted)">Roll ${r.roll || '-'} • ${r.avgAtt}% average attendance</div></div>`).join('')}</div>`
+    : '<div class="empty-state"><div class="icon">OK</div><p>No students are currently below the 75% threshold.</p></div>';
+
+  reportDiv.innerHTML = `<div class="table-wrap"><table><thead><tr><th>Name</th><th>Roll No</th><th>Avg Attendance</th><th>Status</th></tr></thead><tbody>${rows.map(r => `<tr><td>${r.name}</td><td style="font-family:monospace;font-size:.82rem">${r.roll || '-'}</td><td><strong style="color:${parseFloat(r.avgAtt) >= 75 ? 'var(--success)' : 'var(--danger)'}">${r.avgAtt}%</strong></td><td>${r.flag ? '<span class="badge badge-danger">Below 75%</span>' : '<span class="badge badge-success">OK</span>'}</td></tr>`).join('')}</tbody></table></div>`;
+}
+
+async function loadTimetable() {
+  const sem = document.getElementById('tt-view-sem')?.value || 4;
+  const data = await apiFetch(`/timetable?department=${encodeURIComponent(user.department || 'Computer Science')}&semester=${sem}`);
+  const days = ['Monday','Tuesday','Wednesday','Thursday','Friday'];
+  const slots = ['09:00-10:00','10:00-11:00','11:00-12:00','12:00-13:00','14:00-15:00','15:00-16:00'];
+  const table = document.getElementById('tt-table');
+  let html = '<thead><tr><th>Time</th>' + days.map(d => `<th>${d}</th>`).join('') + '</tr></thead><tbody>';
+
+  for (const slot of slots) {
+    html += `<tr><th>${slot}</th>`;
+    for (const day of days) {
+      const entry = data.data?.find(e => e.day === day && e.slot === slot);
+      html += `<td>${entry ? `<div class="tt-slot"><div class="subj">${entry.subject}</div><div class="teacher-name">${entry.substituteTeacher?.name ? `${entry.substituteTeacher.name} covering for ${entry.teacher?.name || 'faculty'}` : (entry.teacher?.name || '')}</div>${entry.substitutionStatus === 'open' ? '<div class="teacher-name" style="color:var(--danger)">Open for claiming</div>' : ''}${entry.substitutionStatus === 'claimed' ? '<div class="teacher-name" style="color:var(--success)">Substitution claimed</div>' : ''}<button class="btn btn-secondary btn-xs" style="margin-top:.5rem" onclick="openSubstitution('${entry._id}', '${entry.subject.replace(/'/g, "\\'")}')">${entry.substitutionStatus === 'none' ? 'Open Substitution' : 'Re-open Substitution'}</button></div>` : '<span class="tt-empty">-</span>'}</td>`;
+    }
+    html += '</tr>';
+  }
+
+  table.innerHTML = html + '</tbody>';
+}
+
+async function openSubstitution(id, subject) {
+  const reason = prompt(`Why is ${subject} open for substitution?`, 'Faculty unavailable');
+  if (reason === null) return;
+  const data = await apiFetch(`/timetable/${id}/open-substitution`, { method:'POST', body:JSON.stringify({ reason }) });
+  if (data.success) {
+    showToast('Substitution opened for teachers to claim.');
+    loadTimetable();
+  } else {
+    showToast(data.message || 'Unable to open substitution', 'error');
+  }
+}
+
+async function loadExtraClasses() {
+  const data = await apiFetch('/extra-classes');
+  const tbody = document.getElementById('extra-class-tbody');
+  if (!data.success || !data.data?.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-muted)">No extra class requests found.</td></tr>';
+    return;
+  }
+  const colors = { pending:'badge-warning', approved:'badge-success', rejected:'badge-danger', open_for_claim:'badge-danger', claimed:'badge-info', cancelled:'badge-purple' };
+  tbody.innerHTML = data.data.map(item => `<tr>
+    <td><strong>${item.subject}</strong><div style="font-size:.78rem;color:var(--text-muted)">Sem ${item.semester}${item.room ? ` • ${item.room}` : ''}</div></td>
+    <td>${item.requestedBy?.name || '-'}</td>
+    <td>${item.day}</td>
+    <td>${item.slot}</td>
+    <td><span class="badge ${colors[item.status] || 'badge-info'}">${item.status.replace(/_/g,' ')}</span></td>
+    <td style="display:flex;gap:.5rem;flex-wrap:wrap">
+      ${item.status === 'pending' ? `<button class="btn btn-success btn-xs" onclick="approveExtraClass('${item._id}')">Approve</button><button class="btn btn-danger btn-xs" onclick="rejectExtraClass('${item._id}')">Reject</button>` : ''}
+      ${item.status === 'claimed' ? `<span style="font-size:.78rem;color:var(--warning)">Claimed by ${item.substituteTeacher?.name || 'teacher'}</span>` : ''}
+    </td>
+  </tr>`).join('');
+}
+
+async function approveExtraClass(id) {
+  const data = await apiFetch(`/extra-classes/${id}/approve`, { method:'PUT' });
+  if (data.success) {
+    showToast('Extra class approved.');
+    loadExtraClasses();
+  } else {
+    showToast(data.message || 'Approval failed', 'error');
+  }
+}
+
+async function rejectExtraClass(id) {
+  const reason = prompt('Reason for rejection?', 'Slot unavailable');
+  if (reason === null) return;
+  const data = await apiFetch(`/extra-classes/${id}/reject`, { method:'PUT', body:JSON.stringify({ reason }) });
+  if (data.success) {
+    showToast('Extra class rejected.');
+    loadExtraClasses();
+  } else {
+    showToast(data.message || 'Rejection failed', 'error');
+  }
+}
+
+async function addTimetableEntry() {
+  const body = {
+    day: document.getElementById('tt-day').value,
+    slot: document.getElementById('tt-slot').value,
+    subject: document.getElementById('tt-subject').value,
+    room: document.getElementById('tt-room').value,
+    teacher: document.getElementById('tt-teacher').value || undefined,
+    semester: parseInt(document.getElementById('tt-sem').value, 10),
+    department: user.department || 'Computer Science'
+  };
+
+  if (!body.subject) return showToast('Please enter subject', 'error');
+  const data = await apiFetch('/timetable', { method:'POST', body:JSON.stringify(body) });
+  if (data.success) {
+    showToast('Entry added!');
+    loadTimetable();
+  } else {
+    showToast(data.message, 'error');
+  }
+}
+
+async function loadFeedbackOverview() {
+  const container = document.getElementById('fb-overview');
+  container.innerHTML = '<div class="empty-state"><div class="icon">⭐</div><p>Loading faculty feedback…</p></div>';
+  // Fetch teacher list then their feedback in parallel
+  const tRes = await apiFetch('/auth/users?role=teacher');
+  if (!tRes.success) { container.innerHTML = '<div class="empty-state"><div class="icon">⚠️</div><p>Unable to load teachers.</p></div>'; return; }
+  const teachers = tRes.data || [];
+  if (!teachers.length) { container.innerHTML = '<div class="empty-state"><div class="icon">👩‍🏫</div><p>No teachers found.</p></div>'; return; }
+
+  const feedbackPromises = teachers.map(t => apiFetch(`/feedback/teacher/${t._id}`));
+  const feedbackResults = await Promise.all(feedbackPromises);
+
+  // Render overview cards
+  container.innerHTML = teachers.map((t, i) => {
+    const fr = feedbackResults[i];
+    const list = fr && fr.success ? (fr.data || []) : [];
+    const avg = list.length ? (list.reduce((s,f) => s + f.rating, 0) / list.length).toFixed(1) : '—';
+    const count = list.length;
+    const commentsHtml = list.length ? list.map(f => `
+      <div style="padding:.5rem 0;border-bottom:1px dashed rgba(255,255,255,.04)">
+        <div style="font-weight:600">${f.subject} • ${'⭐'.repeat(f.rating)}</div>
+        <div style="font-size:.85rem;color:var(--text-muted)">${f.comment||'No comment'}</div>
+        <div style="font-size:.75rem;color:var(--text-muted);margin-top:.25rem">By: ${f.student?.name || 'Anonymous'}</div>
+      </div>`).join('') : '<div style="color:var(--text-muted)">No feedback yet.</div>';
+
+    return `<div style="padding:1rem;background:var(--surface2);border-radius:8px;border:1px solid var(--border);margin-bottom:.75rem">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem">
+        <div>
+          <div style="font-weight:700">${t.name}</div>
+          <div style="font-size:.85rem;color:var(--text-muted)">${t.department || ''}</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-weight:700;font-size:1.1rem">${avg}/5</div>
+          <div style="font-size:.8rem;color:var(--text-muted)">${count} review(s)</div>
+        </div>
+      </div>
+      <div style="margin-top:.5rem">${commentsHtml}</div>
+    </div>`;
+  }).join('');
+}
+async function startElection() {
+  const body = {
+    title: document.getElementById('el-title').value,
+    semester: parseInt(document.getElementById('el-sem').value),
+    startsAt: document.getElementById('el-start').value,
+    endsAt: document.getElementById('el-end').value,
+    description: document.getElementById('el-desc').value
+  };
+  if (!body.title) return showToast('Please enter a title', 'error');
+  const data = await apiFetch('/elections', { method: 'POST', body: JSON.stringify(body) });
+  if (data.success) {
+    showToast('Election started!');
+    document.getElementById('el-title').value = '';
+    document.getElementById('el-desc').value = '';
+    loadElections();
+  } else {
+    showToast(data.message, 'error');
+  }
+}
+
+async function loadElections() {
+  const data = await apiFetch('/elections/active');
+  const list = document.getElementById('el-management-list');
+  if (!list) return;
+  if (!data.success || !data.data.length) {
+    list.innerHTML = '<div class="empty-state"><div class="icon">🗳️</div><p>No active elections right now.</p></div>';
+    return;
+  }
+
+  list.innerHTML = data.data.map(e => `
+    <div style="padding:1.25rem;background:var(--surface2);border:1px solid var(--border);border-radius:12px;margin-bottom:1rem">
+      <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:1rem">
+        <div>
+          <div style="font-weight:700;font-size:1.1rem">${e.title}</div>
+          <div style="font-size:.85rem;color:var(--text-muted)">Semester ${e.semester} • Status: <span class="badge badge-purple">${e.status.toUpperCase()}</span></div>
+        </div>
+        <div style="display:flex;gap:.5rem">
+          ${e.status === 'nomination' ? `<button class="btn btn-success btn-xs" onclick="updateElectionStatus('${e._id}','voting')">Open Voting</button>` : ''}
+          ${e.status === 'voting' ? `<button class="btn btn-danger btn-xs" onclick="updateElectionStatus('${e._id}','completed')">End & Declare Result</button>` : ''}
+          <button class="btn btn-secondary btn-xs" onclick="updateElectionStatus('${e._id}','cancelled')">Cancel</button>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem">
+        ${e.candidates.map(c => `
+          <div style="padding:.75rem;background:var(--primary);border-radius:8px;border:1px solid var(--border)">
+            <div style="font-weight:600">${c.student?.name || 'Unknown'}</div>
+            <div style="font-size:.8rem;color:var(--text-muted)">Roll: ${c.student?.rollNumber || '—'}</div>
+            <div style="font-size:1rem;font-weight:700;color:var(--accent);margin-top:.5rem">${c.votes} Votes</div>
+          </div>
+        `).join('')}
+      </div>
+      ${e.winner ? `<div style="margin-top:1rem;padding:.75rem;background:rgba(16,185,129,.1);border:1px solid var(--success);border-radius:8px;color:var(--success);font-weight:700;text-align:center">🏆 Winner: ${e.winner.name}</div>` : ''}
+    </div>
+  `).join('');
+}
+
+async function updateElectionStatus(id, status) {
+  if (status === 'completed' && !confirm('End voting and declare the winner based on current votes?')) return;
+  const data = await apiFetch(`/elections/${id}/status`, { method: 'PUT', body: JSON.stringify({ status }) });
+  if (data.success) {
+    showToast(`Status updated to ${status}`);
+    loadElections();
+  } else {
+    showToast(data.message, 'error');
+  }
+}
+</script>
+</body>
+</html>

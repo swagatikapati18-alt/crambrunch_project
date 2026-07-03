@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Super Admin — CRAMBRUNCH</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="../css/main.css"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <img src="../assets/logo.jpg" alt="Logo"/>
+    <span>Super Admin</span>
+  </div>
+  <div class="sidebar-user">
+    <div class="user-avatar">SA</div>
+    <div class="user-info"><div class="name user-name">Admin</div><div class="role-badge" style="background:rgba(239,68,68,.1);color:var(--danger)">Super Admin</div></div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section">
+      <div class="nav-section-title">Control</div>
+      <a class="nav-item active" data-view="v-home" onclick="switchView('v-home')"><span class="icon">🛡️</span><span class="label">Control Center</span></a>
+      <a class="nav-item" data-view="v-users" onclick="switchView('v-users')"><span class="icon">👤</span><span class="label">User Management</span></a>
+      <a class="nav-item" data-view="v-departments" onclick="switchView('v-departments')"><span class="icon">🏢</span><span class="label">Departments & HODs</span></a>
+      <a class="nav-item" data-view="v-settings" onclick="switchView('v-settings'); loadSystemConfig();"><span class="icon">⚙️</span><span class="label">Master Data</span></a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-title">System</div>
+      <a class="nav-item" data-view="v-audit" onclick="switchView('v-audit')"><span class="icon">📊</span><span class="label">Audit Ledger</span></a>
+      <a class="nav-item" data-view="v-grievances" onclick="switchView('v-grievances')"><span class="icon">📢</span><span class="label">All Grievances</span></a>
+      <a class="nav-item" data-view="v-skillhub" onclick="switchView('v-skillhub')"><span class="icon">⚡</span><span class="label">SkillHub</span></a>
+      <a class="nav-item" data-view="v-materials" onclick="switchView('v-materials')"><span class="icon">📁</span><span class="label">Materials</span></a>
+        <a class="nav-item" data-view="v-feedback" onclick="switchView('v-feedback')"><span class="icon">⭐</span><span class="label">Faculty Feedback</span></a>
+    </div>
+  </nav>
+  <div class="sidebar-bottom">
+    <button class="logout-btn" data-logout>🚪 Logout</button>
+  </div>
+</aside>
+
+<div class="notif-panel">
+  <div class="notif-panel-header">
+    <h3>🔔 Notifications</h3>
+    <button class="btn btn-xs btn-danger" onclick="toggleNotifPanel()" title="Close Notifications">✕</button>
+  </div>
+  <div class="notif-list"></div>
+</div>
+
+<main class="main">
+  <div class="topbar">
+    <div class="page-title">Control Center</div>
+    <div class="topbar-actions">
+      <button class="notif-btn" onclick="toggleNotifPanel()">🔔 <span class="notif-dot" style="display:none">0</span></button>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- HOME -->
+    <div class="view active" id="v-home">
+      <div style="margin-bottom:1.5rem">
+        <h2 style="font-family:var(--font-head);font-size:1.4rem;font-weight:700">System Control Center 🛡️</h2>
+        <p style="color:var(--text-muted);font-size:.875rem">Full system overview and audit dashboard</p>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card" style="cursor:pointer;transition:transform 0.2s" onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'" onclick="switchView('v-users'); document.getElementById('role-filter').value=''; loadUsers();"><div class="s-icon">👥</div><div class="s-val" id="h-total-users">—</div><div class="s-lbl">Total Users</div></div>
+        <div class="stat-card" style="cursor:pointer;transition:transform 0.2s" onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'" onclick="switchView('v-users'); document.getElementById('role-filter').value='student'; loadUsers();"><div class="s-icon">🎒</div><div class="s-val" id="h-students">—</div><div class="s-lbl">Students</div></div>
+        <div class="stat-card" style="cursor:pointer;transition:transform 0.2s" onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'" onclick="switchView('v-grievances');"><div class="s-icon">📢</div><div class="s-val" id="h-open-griev" style="color:var(--danger)">—</div><div class="s-lbl">Open Grievances</div></div>
+        <div class="stat-card" style="cursor:pointer;transition:transform 0.2s" onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'" onclick="switchView('v-skillhub');"><div class="s-icon">⚡</div><div class="s-val" id="h-skills">—</div><div class="s-lbl">SkillHub Posts</div></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><h3>User Role Distribution</h3></div>
+        <div class="card-body"><div class="chart-wrap"><canvas id="roleChart"></canvas></div></div>
+      </div>
+    </div>
+
+    <!-- MASTER DATA & SETTINGS -->
+    <div class="view" id="v-settings">
+      <div class="card">
+        <div class="card-header">
+          <h3>⚙️ Master Data &amp; Settings</h3>
+        </div>
+        <div class="card-body">
+          <div style="margin-bottom:2rem;padding-bottom:2rem;border-bottom:1px solid var(--border)">
+            <h4 style="margin-bottom:1rem">General Settings</h4>
+            <div style="display:flex;align-items:center;gap:1.5rem;flex-wrap:wrap">
+              <div style="flex:1;min-width:200px">
+                <label style="display:block;margin-bottom:0.25rem;font-weight:600">Grievance SLA (Days)</label>
+                <p style="font-size:0.8rem;color:var(--text-muted);margin:0">Number of days before a grievance is considered overdue.</p>
+              </div>
+              <input type="number" id="config-grievance-days" style="width:110px;text-align:center" min="1" max="365" placeholder="7"/>
+              <button class="btn btn-primary btn-sm" onclick="saveSLAOnly()">Save SLA</button>
+            </div>
+          </div>
+
+          <div>
+            <h4 style="margin-bottom:1rem">🗓️ Holiday Calendar</h4>
+            <div style="display:flex;gap:.75rem;margin-bottom:1.25rem;flex-wrap:wrap">
+              <input type="text" id="new-holiday-name" placeholder="Holiday name (e.g. Diwali)" style="flex:2;min-width:150px"/>
+              <input type="date" id="new-holiday-date" style="flex:1;min-width:140px"/>
+              <button class="btn btn-secondary" onclick="addHoliday()">➕ Add</button>
+              <button class="btn btn-primary" onclick="saveHolidaysOnly()">💾 Save Holidays</button>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Holiday Name</th><th>Date</th><th>Day</th><th>Action</th></tr></thead>
+                <tbody id="holidays-tbody"><tr><td colspan="4" style="text-align:center;color:var(--text-muted)">Loading…</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- USERS -->
+    <div class="view" id="v-users">
+      <div class="card">
+        <div class="card-header">
+          <h3>👤 All Users</h3>
+          <div style="display:flex;gap:.5rem">
+            <select id="role-filter" onchange="loadUsers()" class="btn btn-secondary btn-sm">
+              <option value="">All Roles</option>
+              <option value="student">Students</option>
+              <option value="teacher">Teachers</option>
+              <option value="hod">HODs</option>
+              <option value="parent">Parents</option>
+            </select>
+            <input type="text" placeholder="Search…" oninput="filterUsers()" id="u-search" style="padding:.4rem .8rem;background:var(--primary);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:.8rem"/>
+          </div>
+        </div>
+        <div class="card-body table-wrap">
+          <table>
+            <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Department</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="users-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- DEPARTMENTS -->
+    <div class="view" id="v-departments">
+      <div class="card">
+        <div class="card-header">
+          <h3>🏢 Departments & HOD Management</h3>
+          <button class="btn btn-primary btn-sm" onclick="openModal('dept-modal')">➕ New Dept & HOD</button>
+        </div>
+        <div class="card-body table-wrap">
+          <table>
+            <thead><tr><th>Code</th><th>Name</th><th>Description</th><th>HOD Name</th><th>HOD Email</th><th>HOD Phone</th><th>Status</th><th>Actions</th></tr></thead>
+            <tbody id="depts-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="view" id="v-feedback">
+      <div class="card">
+        <div class="card-header"><h3>Faculty Feedback (All)</h3></div>
+        <div class="card-body" id="fb-overview-admin">
+          <div class="empty-state"><div class="icon">⭐</div><p>Loading faculty feedback…</p></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- GRIEVANCES -->
+    <div class="view" id="v-grievances">
+      <div class="card">
+        <div class="card-header">
+          <h3>📢 All Grievances</h3>
+          <div style="display:flex;gap:.5rem">
+            <select id="admin-griev-filter" onchange="loadGrievances()" class="btn btn-secondary btn-sm">
+              <option value="">All</option>
+              <option value="open">Open</option>
+              <option value="escalated">Escalated</option>
+              <option value="resolved">Resolved</option>
+            </select>
+          </div>
+        </div>
+        <div class="card-body table-wrap">
+          <table>
+            <thead><tr><th>Ticket</th><th>Title</th><th>Category</th><th>Student</th><th>Status</th><th>Date</th><th>Action</th></tr></thead>
+            <tbody id="griev-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- SKILLHUB -->
+    <div class="view" id="v-skillhub">
+      <div class="card">
+        <div class="card-header"><h3>⚡ SkillHub Management</h3></div>
+        <div class="card-body">
+          <div class="skill-grid" id="admin-skill-grid">
+            <div class="empty-state" style="grid-column:1/-1"><div class="icon">⚡</div><p>Loading…</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MATERIALS -->
+    <div class="view" id="v-materials">
+      <div class="card">
+        <div class="card-header"><h3>📁 All Study Materials</h3></div>
+        <div class="card-body" id="admin-mat-list"></div>
+      </div>
+    </div>
+
+    <!-- AUDIT LEDGER -->
+    <div class="view" id="v-audit">
+      <iframe src="audit.html" style="width: 100%; height: 100vh; border: none;"></iframe>
+    </div>
+
+  </div>
+</main>
+
+<!-- Grievance Modal -->
+<div class="modal-backdrop" id="griev-modal">
+  <div class="modal-box">
+    <button class="modal-close-btn" onclick="closeModal('griev-modal')">✕</button>
+    <h3>Respond to Grievance</h3>
+    <input type="hidden" id="griev-id"/>
+    <div class="form-group"><label>Update Status</label>
+      <select id="griev-new-status">
+        <option value="in_progress">In Progress</option>
+        <option value="resolved">Resolved</option>
+        <option value="closed">Closed</option>
+      </select>
+    </div>
+    <div class="form-group"><label>Comment</label><textarea id="griev-comment" placeholder="Official response…"></textarea></div>
+    <button class="btn btn-primary" onclick="updateGrievance()">Update</button>
+  </div>
+</div>
+
+<!-- Department Modal -->
+<div class="modal-backdrop" id="dept-modal">
+  <div class="modal-box">
+    <button class="modal-close-btn" onclick="closeModal('dept-modal')">✕</button>
+    <h3>Create Department & Assign HOD</h3>
+    
+    <h4 style="margin-top:1rem;margin-bottom:0.5rem;font-size:0.9rem;color:var(--text-muted)">Department Details</h4>
+    <div class="form-group"><label>Department Name</label><input type="text" id="dept-name" placeholder="e.g. Computer Science"/></div>
+    <div class="form-group"><label>Department Code</label><input type="text" id="dept-code" placeholder="e.g. CS"/></div>
+    <div class="form-group"><label>Description</label><textarea id="dept-desc" placeholder="Optional..."></textarea></div>
+
+    <h4 style="margin-top:1rem;margin-bottom:0.5rem;font-size:0.9rem;color:var(--text-muted)">HOD Details</h4>
+    <div class="form-group"><label>HOD Name</label><input type="text" id="hod-name" placeholder="e.g. Dr. Smith"/></div>
+    <div class="form-group"><label>HOD Email</label><input type="email" id="hod-email" placeholder="smith@college.edu"/></div>
+    <div class="form-group"><label>HOD Phone</label><input type="tel" id="hod-phone" placeholder="Optional..."/></div>
+    <div class="form-group"><label>HOD Password</label><input type="text" id="hod-password" placeholder="Leave blank to auto-generate"/></div>
+
+    <button class="btn btn-primary" onclick="createDepartment()" style="margin-top:1rem">Create Department & HOD</button>
+  </div>
+</div>
+
+
+<!-- Edit User Modal -->
+<div class="modal-backdrop" id="edit-user-modal">
+  <div class="modal-box">
+    <button class="modal-close-btn" onclick="closeModal('edit-user-modal')">✕</button>
+    <h3>Edit User</h3>
+    <input type="hidden" id="edit-user-id"/>
+    <div class="form-group"><label>Full Name</label><input type="text" id="edit-user-name"/></div>
+    <div class="form-group"><label>Email</label><input type="email" id="edit-user-email"/></div>
+    <div class="form-group"><label>Department</label><select id="edit-user-dept"><option value="">None</option></select></div>
+    <div class="form-group"><label>Phone</label><input type="tel" id="edit-user-phone"/></div>
+    <button class="btn btn-primary" onclick="updateUser()">Save Changes</button>
+  </div>
+</div>
+
+<!-- Edit Department Modal -->
+<div class="modal-backdrop" id="edit-dept-modal">
+  <div class="modal-box">
+    <button class="modal-close-btn" onclick="closeModal('edit-dept-modal')">✕</button>
+    <h3>Edit Department</h3>
+    <input type="hidden" id="edit-dept-id"/>
+    <h4 style="margin-top:1rem;margin-bottom:0.5rem;font-size:0.9rem;color:var(--text-muted)">Department Details</h4>
+    <div class="form-group"><label>Department Name</label><input type="text" id="edit-dept-name"/></div>
+    <div class="form-group"><label>Department Code</label><input type="text" id="edit-dept-code"/></div>
+    <div class="form-group"><label>Description</label><textarea id="edit-dept-desc"></textarea></div>
+
+    <h4 style="margin-top:1rem;margin-bottom:0.5rem;font-size:0.9rem;color:var(--text-muted)">HOD Details</h4>
+    <div class="form-group"><label>HOD Name</label><input type="text" id="edit-hod-name"/></div>
+    <div class="form-group"><label>HOD Email</label><input type="email" id="edit-hod-email"/></div>
+    <div class="form-group"><label>HOD Phone</label><input type="tel" id="edit-hod-phone"/></div>
+    <div class="form-group">
+      <label>Current Password (from DB)</label>
+      <div style="display:flex;gap:0.5rem">
+        <input type="password" id="edit-hod-current-password-display" disabled style="background:var(--surface2);cursor:not-allowed;flex:1"/>
+        <button type="button" class="btn btn-secondary" onclick="togglePasswordVisibility('edit-hod-current-password-display')" title="Toggle visibility">👁️</button>
+        <button type="button" class="btn btn-secondary" onclick="resendHodCredentials()" title="Email password to HOD">📧</button>
+      </div>
+    </div>
+    <div class="form-group"><label>Set New Password</label><input type="text" id="edit-hod-password" placeholder="Leave blank to keep current"/></div>
+
+    <button class="btn btn-primary" onclick="updateDepartment()" style="margin-top:1rem">Save Changes</button>
+  </div>
+</div>
+
+<script src="../js/app.js"></script>
+<script>
+const user = requireAuth(['super_admin']);
+if (user) { initUserUI(user); loadAll(); loadNotifications(); }
+
+let allUsers=[];
+
+async function loadAll() {
+  switchView('v-home');
+  await Promise.all([loadUsers(), loadStats(), loadGrievances(), loadSkillHub(), loadMaterials(), loadDepartments(), loadSystemConfig(), loadFeedbackOverviewAdmin()]);
+}
+
+let allDepartments = [];
+async function loadDepartments() {
+  const data = await apiFetch('/departments');
+  if (!data.success) return;
+  allDepartments = data.data;
+  
+  // Populate the register form department dropdown
+  const deptSelect = document.getElementById('reg-dept');
+  if (deptSelect && deptSelect.tagName === 'SELECT') {
+    deptSelect.innerHTML = '<option value="">Select Department</option>' + 
+      allDepartments.filter(d => d.isActive).map(d => `<option value="${d.name}">${d.name}</option>`).join('');
+  }
+
+  const tbody = document.getElementById('depts-tbody');
+  if (!tbody) return;
+  if (!allDepartments.length) {
+    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-muted)">No departments found.</td></tr>';
+    return;
+  }
+  tbody.innerHTML = allDepartments.map(d => `<tr>
+    <td><span class="badge badge-info">${d.code}</span></td>
+    <td><strong>${d.name}</strong></td>
+    <td style="font-size:0.8rem;max-width:150px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${d.description||''}">${d.description||'—'}</td>
+    <td style="font-size:0.85rem">${d.hod ? d.hod.name : '<span style="color:var(--text-muted)">Unassigned</span>'}</td>
+    <td style="font-size:0.8rem;color:var(--text-muted)">${d.hod ? d.hod.email : '—'}</td>
+    <td style="font-size:0.8rem;color:var(--text-muted)">${d.hod ? (d.hod.phone || '—') : '—'}</td>
+    <td><span class="badge ${d.isActive ? 'badge-success' : 'badge-danger'}">${d.isActive ? 'Active' : 'Inactive'}</span></td>
+    <td>
+      <button class="btn btn-primary btn-xs" onclick="openEditDeptModal('${d._id}')">Edit</button>
+      <button class="btn btn-${d.isActive ? 'danger' : 'success'} btn-xs" onclick="toggleDepartment('${d._id}')">${d.isActive ? 'Deactivate' : 'Activate'}</button>
+    </td>
+  </tr>`).join('');
+}
+
+function openEditDeptModal(id) {
+  const d = allDepartments.find(x => x._id === id);
+  if(!d) return;
+  document.getElementById('edit-dept-id').value = d._id;
+  document.getElementById('edit-dept-name').value = d.name;
+  document.getElementById('edit-dept-code').value = d.code;
+  document.getElementById('edit-dept-desc').value = d.description || '';
+  
+  if (d.hod) {
+    document.getElementById('edit-hod-name').value = d.hod.name || '';
+    document.getElementById('edit-hod-email').value = d.hod.email || '';
+    document.getElementById('edit-hod-phone').value = d.hod.phone || '';
+    document.getElementById('edit-hod-current-password-display').value = d.hod.plainPassword || '********';
+  } else {
+    document.getElementById('edit-hod-name').value = '';
+    document.getElementById('edit-hod-email').value = '';
+    document.getElementById('edit-hod-phone').value = '';
+    document.getElementById('edit-hod-current-password-display').value = '********';
+  }
+  document.getElementById('edit-hod-current-password-display').type = 'password';
+  document.getElementById('edit-hod-password').value = ''; // clear password
+
+  openModal('edit-dept-modal');
+}
+
+async function updateDepartment() {
+  const id = document.getElementById('edit-dept-id').value;
+  const body = {
+    name: document.getElementById('edit-dept-name').value,
+    code: document.getElementById('edit-dept-code').value,
+    description: document.getElementById('edit-dept-desc').value,
+    hodName: document.getElementById('edit-hod-name').value,
+    hodEmail: document.getElementById('edit-hod-email').value,
+    hodPhone: document.getElementById('edit-hod-phone').value,
+    hodPassword: document.getElementById('edit-hod-password').value
+  };
+  const data = await apiFetch(`/departments/${id}`, { method: 'PUT', body: JSON.stringify(body) });
+  if (data.success) { 
+    showToast('Department & HOD updated!'); 
+    closeModal('edit-dept-modal'); 
+    loadDepartments(); 
+    loadUsers(); 
+  } else showToast(data.message, 'error');
+}
+
+function togglePasswordVisibility(id) {
+  const input = document.getElementById(id);
+  if (input) {
+    input.type = input.type === 'password' ? 'text' : 'password';
+  }
+}
+
+async function resendHodCredentials() {
+  const id = document.getElementById('edit-dept-id').value;
+  if (!id) return;
+  const data = await apiFetch(`/departments/${id}/resend-credentials`, { method: 'POST' });
+  if (data.success) {
+    showToast('Credentials emailed to HOD successfully!');
+  } else {
+    showToast(data.message || 'Failed to send email', 'error');
+  }
+}
+
+async function createDepartment() {
+  const body = {
+    name: document.getElementById('dept-name').value,
+    code: document.getElementById('dept-code').value,
+    description: document.getElementById('dept-desc').value,
+    hodName: document.getElementById('hod-name').value,
+    hodEmail: document.getElementById('hod-email').value,
+    hodPhone: document.getElementById('hod-phone').value,
+    hodPassword: document.getElementById('hod-password').value
+  };
+  if (!body.name || !body.code || !body.hodName || !body.hodEmail) return showToast('Department Name/Code and HOD Name/Email are required', 'error');
+  const data = await apiFetch('/departments', { method: 'POST', body: JSON.stringify(body) });
+  if (data.success) {
+    showToast('Department & HOD created!');
+    closeModal('dept-modal');
+    loadDepartments();
+    loadUsers(); // Refresh users list so the new HOD shows up
+    ['dept-name','dept-code','dept-desc','hod-name','hod-email','hod-phone','hod-password'].forEach(id => document.getElementById(id).value = '');
+  } else showToast(data.message, 'error');
+}
+
+async function loadFeedbackOverviewAdmin() {
+  const container = document.getElementById('fb-overview-admin');
+  container.innerHTML = '<div class="empty-state"><div class="icon">⭐</div><p>Loading faculty feedback…</p></div>';
+  const tRes = await apiFetch('/auth/users?role=teacher');
+  if (!tRes.success) { container.innerHTML = '<div class="empty-state"><div class="icon">⚠️</div><p>Unable to load teachers.</p></div>'; return; }
+  const teachers = tRes.data || [];
+  if (!teachers.length) { container.innerHTML = '<div class="empty-state"><div class="icon">👩‍🏫</div><p>No teachers found.</p></div>'; return; }
+  const feedbackPromises = teachers.map(t => apiFetch(`/feedback/teacher/${t._id}`));
+  const feedbackResults = await Promise.all(feedbackPromises);
+  container.innerHTML = teachers.map((t, i) => {
+    const fr = feedbackResults[i];
+    const list = fr && fr.success ? (fr.data || []) : [];
+    const avg = list.length ? (list.reduce((s,f) => s + f.rating, 0) / list.length).toFixed(1) : '—';
+    const count = list.length;
+    const commentsHtml = list.length ? list.map(f => `
+      <div style="padding:.5rem 0;border-bottom:1px dashed rgba(255,255,255,.04)">
+        <div style="font-weight:600">${f.subject} • ${'⭐'.repeat(f.rating)}</div>
+        <div style="font-size:.85rem;color:var(--text-muted)">${f.comment||'No comment'}</div>
+        <div style="font-size:.75rem;color:var(--text-muted);margin-top:.25rem">By: ${f.student?.name || 'Anonymous'}</div>
+      </div>`).join('') : '<div style="color:var(--text-muted)">No feedback yet.</div>';
+    return `<div style="padding:1rem;background:var(--surface2);border-radius:8px;border:1px solid var(--border);margin-bottom:.75rem">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem">
+        <div>
+          <div style="font-weight:700">${t.name}</div>
+          <div style="font-size:.85rem;color:var(--text-muted)">${t.department || ''}</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-weight:700;font-size:1.1rem">${avg}/5</div>
+          <div style="font-size:.8rem;color:var(--text-muted)">${count} review(s)</div>
+        </div>
+      </div>
+      <div style="margin-top:.5rem">${commentsHtml}</div>
+    </div>`;
+  }).join('');
+}
+
+async function toggleDepartment(id) {
+  if (!confirm('Toggle department status?')) return;
+  const data = await apiFetch(`/departments/${id}`, { method: 'DELETE' });
+  if (data.success) { showToast(data.message); loadDepartments(); }
+  else showToast(data.message, 'error');
+}
+
+
+async function loadStats() {
+  const [students, grievs, skills, users] = await Promise.all([
+    apiFetch('/students'),
+    apiFetch('/grievances'),
+    apiFetch('/skillhub'),
+    apiFetch('/auth/users')
+  ]);
+  
+  if (users.data) {
+    document.getElementById('h-total-users').textContent = users.data.length;
+  }
+  
+  if (students.data) {
+    document.getElementById('h-students').textContent = students.data.length;
+  }
+  
+  if (grievs.data) {
+    const open = grievs.data.filter(g=>g.status==='open'||g.status==='escalated').length;
+    document.getElementById('h-open-griev').textContent = open;
+  }
+  
+  if (skills.data) {
+    document.getElementById('h-skills').textContent = skills.data.length;
+  }
+
+  // Safely try to load chart if role distribution exists
+  try {
+    const auditStats = await apiFetch('/audit/stats');
+    if (auditStats.success && auditStats.data && auditStats.data.roleDistribution) {
+      const ctx = document.getElementById('roleChart').getContext('2d');
+      new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: auditStats.data.roleDistribution.map(d => d._id),
+          datasets: [{
+            data: auditStats.data.roleDistribution.map(d => d.count),
+            backgroundColor: ['#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6']
+          }]
+        },
+        options: { maintainAspectRatio: false }
+      });
+    }
+  } catch (e) {
+    console.log('Could not load role chart', e);
+  }
+}
+
+let configHolidays = [];
+
+async function loadSystemConfig() {
+  const data = await apiFetch('/config');
+  if (data.success && data.data) {
+    document.getElementById('config-grievance-days').value = data.data.grievanceResolutionDays || 7;
+    configHolidays = data.data.holidays || [];
+    renderConfigArrays();
+  }
+}
+
+function renderConfigArrays() {
+  const hBody = document.getElementById('holidays-tbody');
+  if (!hBody) return;
+  if (!configHolidays.length) {
+    hBody.innerHTML = '<tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:1.5rem">📭 No holidays added yet. Add one above and click Save Holidays.</td></tr>';
+    return;
+  }
+  const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  hBody.innerHTML = configHolidays.map((h, i) => {
+    const d = new Date(h.date);
+    return `<tr>
+      <td><strong>${h.name}</strong></td>
+      <td>${d.toLocaleDateString('en-IN', {day:'2-digit',month:'short',year:'numeric'})}</td>
+      <td><span class="badge badge-info">${days[d.getDay()]}</span></td>
+      <td><button class="btn btn-danger btn-xs" onclick="removeHoliday(${i})">Remove</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function addHoliday() {
+  const name = document.getElementById('new-holiday-name').value;
+  const date = document.getElementById('new-holiday-date').value;
+  if (!name || !date) return;
+  configHolidays.push({ name, date });
+  document.getElementById('new-holiday-name').value = '';
+  document.getElementById('new-holiday-date').value = '';
+  renderConfigArrays();
+}
+
+function removeHoliday(idx) {
+  configHolidays.splice(idx, 1);
+  renderConfigArrays();
+}
+
+async function saveSLAOnly() {
+  const days = document.getElementById('config-grievance-days').value;
+  if (!days || days < 1) return showToast('Please enter a valid number of days (min 1)', 'error');
+  const data = await apiFetch('/config', {
+    method: 'PUT',
+    body: JSON.stringify({ grievanceResolutionDays: parseInt(days) })
+  });
+  if (data.success) showToast('Grievance SLA saved (' + days + ' days)!');
+  else showToast(data.message || 'Save failed', 'error');
+}
+
+async function saveHolidaysOnly() {
+  const data = await apiFetch('/config', {
+    method: 'PUT',
+    body: JSON.stringify({ holidays: configHolidays })
+  });
+  if (data.success) showToast('Holiday calendar saved — ' + configHolidays.length + ' holiday(s)!');
+  else showToast(data.message || 'Save failed', 'error');
+}
+
+async function saveMasterData() {
+  const days = document.getElementById('config-grievance-days').value;
+  if (!days || days < 1) return showToast('Please enter a valid SLA in days', 'error');
+  const data = await apiFetch('/config', {
+    method: 'PUT',
+    body: JSON.stringify({ 
+      grievanceResolutionDays: parseInt(days),
+      holidays: configHolidays
+    })
+  });
+  if (data.success) showToast('Master Data saved successfully!');
+  else showToast(data.message || 'Save failed', 'error');
+}
+
+async function loadUsers() {
+  const role = document.getElementById('role-filter')?.value||'';
+  const data = await apiFetch(`/auth/users${role ? '?role=' + role : ''}`);
+  allUsers = data.data||[];
+  document.getElementById('h-total-users').textContent = allUsers.length;
+  renderUsersTable(allUsers);
+  // Role chart
+  const roles = {};
+  allUsers.forEach(u=>roles[u.role]=(roles[u.role]||0)+1);
+  const ctx = document.getElementById('roleChart');
+  if (ctx) {
+    if (window._rChart) window._rChart.destroy();
+    window._rChart = new Chart(ctx,{type:'pie',data:{labels:Object.keys(roles),datasets:[{data:Object.values(roles),backgroundColor:['rgba(0,229,255,.6)','rgba(124,58,237,.6)','rgba(245,158,11,.6)','rgba(0,200,150,.6)','rgba(239,68,68,.6)']}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#7a9bb5'}}}}});
+  }
+}
+
+function renderUsersTable(users) {
+  const tbody = document.getElementById('users-tbody');
+  const roleColors = {super_admin:'badge-danger',hod:'badge-warning',teacher:'badge-info',student:'badge-purple',parent:'badge-success',librarian:'badge-warning'};
+  tbody.innerHTML = users.map(u=>`<tr>
+    <td><strong>${u.name}</strong></td>
+    <td style="font-size:.8rem;color:var(--text-muted)">${u.email}</td>
+    <td><span class="badge ${roleColors[u.role]||'badge-info'}">${u.role.replace('_',' ')}</span></td>
+    <td style="font-size:.82rem;color:var(--text-muted)">${u.department||'—'}</td>
+    <td><span class="badge ${u.isActive?'badge-success':'badge-danger'}">${u.isActive?'Active':'Inactive'}</span></td>
+    <td>
+      <button class="btn btn-primary btn-xs" onclick="openEditUserModal('${u._id}')">Edit</button>
+    </td>
+  </tr>`).join('');
+}
+
+function openEditUserModal(id) {
+  const u = allUsers.find(x => x._id === id);
+  if(!u) return;
+  document.getElementById('edit-user-id').value = u._id;
+  document.getElementById('edit-user-name').value = u.name;
+  document.getElementById('edit-user-email').value = u.email;
+  
+  const deptSelect = document.getElementById('edit-user-dept');
+  deptSelect.innerHTML = '<option value="">None</option>' + 
+    allDepartments.map(d => `<option value="${d.name}">${d.name}</option>`).join('');
+  
+  deptSelect.value = u.department || '';
+  document.getElementById('edit-user-phone').value = u.phone || '';
+  openModal('edit-user-modal');
+}
+
+async function updateUser() {
+  const id = document.getElementById('edit-user-id').value;
+  const body = {
+    name: document.getElementById('edit-user-name').value,
+    email: document.getElementById('edit-user-email').value,
+    department: document.getElementById('edit-user-dept').value,
+    phone: document.getElementById('edit-user-phone').value
+  };
+  const data = await apiFetch(`/auth/users/${id}`, { method: 'PUT', body: JSON.stringify(body) });
+  if (data.success) { showToast('User updated!'); closeModal('edit-user-modal'); loadUsers(); }
+  else showToast(data.message, 'error');
+}
+
+function filterUsers() {
+  const q = document.getElementById('u-search').value.toLowerCase();
+  renderUsersTable(allUsers.filter(u=>u.name.toLowerCase().includes(q)||u.email.toLowerCase().includes(q)));
+}
+
+async function deactivateUser(id) {
+  if (!confirm('Deactivate this user?')) return;
+  const data = await apiFetch(`/auth/users/${id}/status`,{method:'PATCH',body:JSON.stringify({ isActive:false })});
+  if (data.success) { showToast('User deactivated'); loadUsers(); }
+}
+
+async function registerUser() {
+  const body = {
+    name: document.getElementById('reg-name').value,
+    email: document.getElementById('reg-email').value,
+    department: document.getElementById('reg-dept').value,
+    phone: document.getElementById('reg-phone').value
+  };
+  if (!body.name||!body.email||!body.department) return showToast('Name, email and department are required','error');
+  const data = await apiFetch('/auth/create-hod',{method:'POST',body:JSON.stringify(body)});
+  if (data.success) { showToast('HOD account created successfully!'); loadUsers(); ['reg-name','reg-email','reg-dept','reg-phone'].forEach(id=>document.getElementById(id).value=''); }
+  else showToast(data.message,'error');
+}
+
+async function loadGrievances() {
+  const status = document.getElementById('admin-griev-filter')?.value||'';
+  const data = await apiFetch(`/grievances${status?'?status='+status:''}`);
+  if (!data.success) return;
+  const colors = {open:'badge-info',in_progress:'badge-warning',escalated:'badge-danger',resolved:'badge-success',closed:'badge-purple'};
+  const tbody = document.getElementById('griev-tbody');
+  if (!data.data.length) { tbody.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--text-muted)">No grievances.</td></tr>'; return; }
+  tbody.innerHTML = data.data.map(g=>`<tr>
+    <td style="font-family:monospace;font-size:.78rem;color:var(--accent)">${g.ticketId}</td>
+    <td style="max-width:180px;font-weight:500">${g.title}</td>
+    <td><span class="badge badge-purple">${g.category}</span></td>
+    <td style="font-size:.8rem">${g.studentLabel || (g.isAnonymous?'Anonymous':(g.submittedBy?.name||'—'))}</td>
+    <td><span class="badge ${colors[g.status]}">${g.status.replace('_',' ')}</span></td>
+    <td style="color:var(--text-muted);font-size:.78rem">${formatDate(g.createdAt)}</td>
+    <td><button class="btn btn-secondary btn-xs" onclick="openGrievModal('${g._id}')">Respond</button></td>
+  </tr>`).join('');
+}
+
+function openGrievModal(id) { document.getElementById('griev-id').value=id; openModal('griev-modal'); }
+async function updateGrievance() {
+  const id = document.getElementById('griev-id').value;
+  const status = document.getElementById('griev-new-status').value;
+  const comment = document.getElementById('griev-comment').value;
+  const data = await apiFetch(`/grievances/${id}/status`,{method:'PUT',body:JSON.stringify({status,comment})});
+  if (data.success) { showToast('Updated!'); closeModal('griev-modal'); loadGrievances(); }
+  else showToast(data.message,'error');
+}
+
+async function loadSkillHub() {
+  const data = await apiFetch('/skillhub');
+  const grid = document.getElementById('admin-skill-grid');
+  if (!data.data?.length) { grid.innerHTML='<div class="empty-state" style="grid-column:1/-1"><div class="icon">⚡</div><p>No tasks yet.</p></div>'; return; }
+  grid.innerHTML = data.data.map(t=>`
+    <div class="skill-card">
+      <div class="sk-type">${t.type.replace('_',' ')}</div>
+      <div class="sk-title">${t.title}</div>
+      <div class="sk-desc">${t.description}</div>
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span class="badge ${t.status==='completed'?'badge-success':t.status==='in_progress'?'badge-warning':'badge-info'}">${t.status.replace('_',' ')}</span>
+        <span style="font-size:.75rem;color:var(--text-muted)">${t.applicants.length} applicant(s)</span>
+      </div>
+      ${t.status==='in_progress'&&t.assignedTo?`<button class="btn btn-success btn-sm" style="margin-top:.75rem" onclick="completeTask('${t._id}')">✅ Mark Complete & Award Badge</button>`:''}
+    </div>`).join('');
+}
+
+async function completeTask(id) {
+  const data = await apiFetch(`/skillhub/${id}/complete`,{method:'PUT'});
+  if (data.success) { showToast('Task completed & badge awarded!'); loadSkillHub(); }
+}
+
+async function loadMaterials() {
+  const data = await apiFetch('/materials');
+  const list = document.getElementById('admin-mat-list');
+  if (!data.data?.length) { list.innerHTML='<div class="empty-state"><div class="icon">📁</div><p>No materials.</p></div>'; return; }
+  list.innerHTML=`<div style="display:flex;flex-direction:column;gap:.75rem">${data.data.map(m=>`
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:.9rem 1rem;background:var(--surface2);border-radius:8px;border:1px solid var(--border)">
+      <div><div style="font-weight:600;font-size:.875rem">${m.title}</div><div style="font-size:.75rem;color:var(--text-muted)">${m.subject} • ${m.uploadedBy?.name||'—'} • <span class="badge badge-info">${m.fileType}</span></div></div>
+      <button class="btn btn-danger btn-xs" onclick="deleteMat('${m._id}')">Delete</button>
+    </div>`).join('')}</div>`;
+}
+
+async function deleteMat(id) {
+  if (!confirm('Delete?')) return;
+  const data = await apiFetch(`/materials/${id}`,{method:'DELETE'});
+  if (data.success) { showToast('Deleted'); loadMaterials(); }
+}
+</script>
+</body>
+</html>

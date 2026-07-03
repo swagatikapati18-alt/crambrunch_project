@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Parent Dashboard — CRAMBRUNCH</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="../css/main.css"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <img src="../assets/logo.jpg" alt="Logo"/>
+    <span>Parent Portal</span>
+  </div>
+  <div class="sidebar-user">
+    <div class="user-avatar">PR</div>
+    <div class="user-info"><div class="name user-name">Parent</div><div class="role-badge" style="background:rgba(0,200,150,.1);color:var(--success)">Guardian</div></div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section">
+      <div class="nav-section-title">My Ward</div>
+      <a class="nav-item active" data-view="v-home" onclick="switchView('v-home')"><span class="icon">🏠</span><span class="label">Overview</span></a>
+      <a class="nav-item" data-view="v-attendance" onclick="switchView('v-attendance')"><span class="icon">📅</span><span class="label">Attendance Feed</span></a>
+      <a class="nav-item" data-view="v-marks" onclick="switchView('v-marks')"><span class="icon">📊</span><span class="label">Academic Results</span></a>
+      <a class="nav-item" data-view="v-circulars" onclick="switchView('v-circulars')"><span class="icon">📜</span><span class="label">Circulars</span></a>
+      <a class="nav-item" data-view="v-requests" onclick="switchView('v-requests')"><span class="icon">🤝</span><span class="label">Request Meeting</span></a>
+    </div>
+
+  </nav>
+  <div class="sidebar-bottom">
+    <button class="logout-btn" data-logout><span>🚪</span> Logout</button>
+  </div>
+</aside>
+
+<div class="notif-panel">
+  <div class="notif-panel-header">
+    <h3>🔔 Notifications</h3>
+    <button class="btn btn-xs btn-danger" onclick="toggleNotifPanel()" title="Close Notifications">✕</button>
+  </div>
+  <div class="notif-list"></div>
+</div>
+
+<main class="main">
+  <div class="topbar">
+    <div class="page-title">Parent Overview</div>
+    <div class="topbar-actions">
+      <button class="notif-btn" onclick="toggleNotifPanel()">🔔 <span class="notif-dot" style="display:none">0</span></button>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- HOME -->
+    <div class="view active" id="v-home">
+      <div id="student-banner" style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:1.5rem 2rem;margin-bottom:2rem;display:flex;align-items:center;gap:1.5rem">
+        <div style="width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,var(--accent2),var(--accent));display:flex;align-items:center;justify-content:center;font-size:1.5rem;font-weight:700;color:#fff" id="ward-avatar">?</div>
+        <div>
+          <div style="font-family:var(--font-head);font-size:1.2rem;font-weight:700" id="ward-name">Loading…</div>
+          <div style="color:var(--text-muted);font-size:.85rem;margin-top:.2rem" id="ward-details">—</div>
+        </div>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card" onclick="switchView('v-attendance')" style="cursor:pointer" title="View Attendance Feed"><div class="s-icon">📅</div><div class="s-val" id="h-att">—</div><div class="s-lbl">Overall Attendance</div></div>
+        <div class="stat-card" onclick="switchView('v-marks')" style="cursor:pointer" title="View Academic Results"><div class="s-icon">📊</div><div class="s-val" id="h-marks">—</div><div class="s-lbl">Avg Marks Score</div></div>
+        <div class="stat-card" onclick="switchView('v-home')" style="cursor:pointer"><div class="s-icon">🏅</div><div class="s-val" id="h-badges">0</div><div class="s-lbl">Badges Earned</div></div>
+        <div class="stat-card" id="eligibility-card" onclick="switchView('v-attendance')" style="cursor:pointer" title="View Attendance Feed"><div class="s-icon">🎓</div><div class="s-val" id="h-elig" style="font-size:1rem">—</div><div class="s-lbl">Exam Eligibility</div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-top:.5rem">
+        <div class="card">
+          <div class="card-header"><h3>Attendance by Subject</h3></div>
+          <div class="card-body"><div class="chart-wrap"><canvas id="attChart"></canvas></div></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><h3>Academic Performance</h3></div>
+          <div class="card-body"><div class="chart-wrap"><canvas id="perfChart"></canvas></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ATTENDANCE FEED -->
+    <div class="view" id="v-attendance">
+      <div class="card">
+        <div class="card-header"><h3>📅 Attendance Transparency Feed</h3></div>
+        <div class="card-body">
+          <div class="att-grid" id="att-grid">
+            <div class="empty-state"><div class="icon">📅</div><p>Loading…</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MARKS -->
+    <div class="view" id="v-marks">
+      <div class="card">
+        <div class="card-header"><h3>📊 Academic Results</h3></div>
+        <div class="card-body table-wrap">
+          <table>
+            <thead><tr><th>Subject</th><th>Exam Type</th><th>Scored</th><th>Total</th><th>%</th></tr></thead>
+            <tbody id="marks-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- CIRCULARS -->
+    <div class="view" id="v-circulars">
+      <div class="card">
+        <div class="card-header"><h3>📜 College Circulars</h3></div>
+        <div class="card-body" id="circulars-list">
+          <div class="empty-state"><div class="icon">📜</div><p>Loading circulars…</p></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- REQUESTS -->
+    <div class="view" id="v-requests">
+      <div class="card">
+        <div class="card-header"><h3>🤝 Request Meeting with HOD</h3></div>
+        <div class="card-body">
+          <p style="color:var(--text-muted);font-size:.9rem">Request a meeting with your ward's HOD. Include preferred times.</p>
+          <div class="form-group"><label>Subject</label><input type="text" id="req-subject" placeholder="e.g. Meeting regarding attendance"/></div>
+          <div class="form-group"><label>Preferred Date/Time</label><input type="text" id="req-time" placeholder="e.g. 2026-05-10 11:00 AM"/></div>
+          <div class="form-group"><label>Message</label><textarea id="req-message" placeholder="Details for the HOD…"></textarea></div>
+          <button class="btn btn-primary" onclick="submitMeetingRequest()">Send Request</button>
+        </div>
+      </div>
+    </div>
+
+    
+
+
+
+  </div>
+</main>
+
+<script src="../js/app.js"></script>
+<script>
+const user = requireAuth(['parent']);
+if (user) { initUserUI(user); loadAll(); loadNotifications(); setInterval(loadNotifications,30000); }
+
+let wardId = null;
+
+async function loadAll() {
+  // Get linked student
+  const me = await apiFetch('/auth/me');
+  if (me.user?.linkedStudent) {
+    wardId = me.user.linkedStudent._id || me.user.linkedStudent;
+    loadWardInfo();
+  } else {
+    // Fallback: find student by parentEmail
+    document.getElementById('ward-name').textContent = 'No linked student found';
+    document.getElementById('ward-details').textContent = 'Please contact admin to link your ward.';
+  }
+}
+
+async function loadWardInfo() {
+  if (!wardId) return;
+  const data = await apiFetch(`/students/${wardId}`);
+  if (!data.success) return;
+  const s = data.data;
+  const initials = s.name.split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase();
+  document.getElementById('ward-avatar').textContent = initials;
+  document.getElementById('ward-name').textContent = s.name;
+  document.getElementById('ward-details').textContent = `Roll: ${s.rollNumber||'—'} • ${s.department} • Semester ${s.semester}`;
+  document.getElementById('h-badges').textContent = s.badges?.length||0;
+  await Promise.all([loadAttendance(), loadMarks()]);
+  // Additional parent-specific loads
+  await Promise.all([loadAttendanceRecords(), loadCirculars(), loadAttendanceWarnings()]);
+}
+
+async function loadAttendance() {
+  if (!wardId) return;
+  const data = await apiFetch(`/attendance/summary/${wardId}`);
+  if (!data.success) return;
+  const grid = document.getElementById('att-grid');
+  if (!data.data.length) { grid.innerHTML='<div class="empty-state"><div class="icon">📅</div><p>No attendance data yet.</p></div>'; return; }
+  grid.innerHTML = data.data.map(s=>`
+    <div class="att-subject">
+      <div class="subj-name">${s.subject}</div>
+      <div class="att-pct ${pctClass(s.percentage)}">${s.percentage}%</div>
+      <div class="progress-bar" style="margin-top:.5rem"><div class="progress-fill ${pctClass(s.percentage)}" style="width:${s.percentage}%"></div></div>
+      <div style="font-size:.75rem;color:var(--text-muted);margin-top:.4rem">${s.present}/${s.total} classes attended</div>
+      ${s.percentage<75?`<div style="margin-top:.5rem;padding:.3rem .6rem;background:rgba(239,68,68,.1);border-radius:6px;font-size:.72rem;color:var(--danger)">⚠️ Below 75% threshold</div>`:''}
+    </div>`).join('');
+  const avg = (data.data.reduce((s,d)=>s+d.percentage,0)/data.data.length).toFixed(1);
+  document.getElementById('h-att').textContent = avg+'%';
+  const allOk = data.data.every(d=>d.percentage>=75);
+  document.getElementById('h-elig').textContent = allOk?'Eligible ✅':'At Risk ⚠️';
+  document.getElementById('h-elig').style.color = allOk?'var(--success)':'var(--warning)';
+  // Chart
+  const ctx = document.getElementById('attChart');
+  if (ctx) {
+    if (window._ac) window._ac.destroy();
+    window._ac = new Chart(ctx,{type:'bar',data:{labels:data.data.map(d=>d.subject),datasets:[{label:'Attendance %',data:data.data.map(d=>d.percentage),backgroundColor:data.data.map(d=>d.percentage>=75?'rgba(0,200,150,.5)':'rgba(239,68,68,.5)'),borderRadius:6}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{min:0,max:100,ticks:{color:'#7a9bb5'},grid:{color:'rgba(0,229,255,.05)'}},x:{ticks:{color:'#7a9bb5'},grid:{display:false}}}}});
+  }
+}
+
+// Chronological attendance records (transparency feed)
+async function loadAttendanceRecords() {
+  if (!wardId) return;
+  const data = await apiFetch(`/attendance/records/${wardId}`);
+  const grid = document.getElementById('att-grid');
+  if (!data.success || !data.data?.length) { grid.innerHTML = '<div class="empty-state"><div class="icon">📅</div><p>No attendance history available.</p></div>'; return; }
+  // group by date for a chronological feed
+  const items = data.data.map(r => ({ date: new Date(r.date).toLocaleDateString(), time: new Date(r.date).toLocaleTimeString(), subject: r.subject, status: r.status, teacher: r.teacher?.name }));
+  // render recent 30 entries
+  const recent = items.slice(0, 100);
+  grid.innerHTML = recent.map(it => `
+    <div style="padding:1rem;border-bottom:1px solid rgba(255,255,255,.03);display:flex;justify-content:space-between;align-items:center">
+      <div>
+        <div style="font-weight:600">${it.subject} • ${it.date} ${it.time}</div>
+        <div style="font-size:.85rem;color:var(--text-muted)">Status: ${it.status} ${it.teacher?`• Marked by ${it.teacher}`:''}</div>
+      </div>
+      <div style="font-weight:700;color:${it.status==='present'?'var(--success)':'var(--danger)'}">${it.status.toUpperCase()}</div>
+    </div>`).join('');
+}
+
+// Warning engine: run attendance predictions per subject and show critical warnings
+async function loadAttendanceWarnings() {
+  if (!wardId) return;
+  const summary = await apiFetch(`/attendance/summary/${wardId}`);
+  if (!summary.success) return;
+  const subjects = summary.data || [];
+  const warnings = [];
+  for (const s of subjects) {
+    const p = await apiFetch(`/attendance/predict/${wardId}/${encodeURIComponent(s.subject)}?totalClasses=60`);
+    if (p.success && !p.data.isEligible) {
+      warnings.push({ subject: s.subject, message: p.data.message });
+    }
+  }
+  // show warnings as notifications in UI
+  if (warnings.length) {
+    const list = document.querySelector('.notif-list');
+    warnings.forEach(w => {
+      const node = document.createElement('div');
+      node.className = 'notif-item unread';
+      node.innerHTML = `<div class="n-title">Attendance Warning</div><div class="n-msg">${w.subject}: ${w.message}</div><div class="n-time">just now</div>`;
+      if (list) list.prepend(node);
+    });
+  }
+}
+
+// Load circulars
+async function loadCirculars() {
+  const container = document.getElementById('circulars-list');
+  const data = await apiFetch(`/materials?fileType=circular&department=${encodeURIComponent(getUser().department||'')}`);
+  if (!data.success || !data.data.length) { container.innerHTML = '<div class="empty-state"><div class="icon">📜</div><p>No circulars available.</p></div>'; return; }
+  container.innerHTML = `<div style="display:flex;flex-direction:column;gap:.75rem">${data.data.map(c=>`
+    <div style="padding:1rem;background:var(--surface2);border-radius:8px;border:1px solid var(--border)">
+      <div style="font-weight:700">${c.title || c.subject || 'Circular'}</div>
+      <div style="font-size:.85rem;color:var(--text-muted);margin-top:.35rem">Posted by ${c.uploadedBy?.name || 'Office'} • ${new Date(c.createdAt).toLocaleDateString()}</div>
+      ${c.fileUrl?`<div style="margin-top:.5rem"><a href="${c.fileUrl}" target="_blank">View Document</a></div>`:''}
+    </div>`).join('')}</div>`;
+}
+
+// (Fees & documents removed)
+
+// Submit meeting request using grievances endpoint
+async function submitMeetingRequest() {
+  const subject = document.getElementById('req-subject').value;
+  const time = document.getElementById('req-time').value;
+  const msg = document.getElementById('req-message').value;
+  if (!subject || !time) return showToast('Please provide subject and preferred time','error');
+  const body = { category: 'meeting', title: subject, description: `Preferred: ${time}\n\n${msg}` };
+  const res = await apiFetch('/grievances', { method: 'POST', body: JSON.stringify(body) });
+  if (res.success) { showToast('Meeting request sent to HOD'); document.getElementById('req-subject').value=''; document.getElementById('req-time').value=''; document.getElementById('req-message').value=''; }
+  else showToast(res.message||'Failed to send request','error');
+}
+
+// (Document request removed)
+
+async function loadMarks() {
+  if (!wardId) return;
+  const data = await apiFetch(`/marks/student/${wardId}`);
+  if (!data.success) return;
+  const tbody = document.getElementById('marks-tbody');
+  if (!data.data.length) { tbody.innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--text-muted)">No marks recorded.</td></tr>'; return; }
+  tbody.innerHTML = data.data.map(m=>{
+    const pct = ((m.marksObtained/m.totalMarks)*100).toFixed(0);
+    return `<tr><td>${m.subject}</td><td><span class="badge badge-info">${m.examType}</span></td><td style="font-weight:600">${m.marksObtained}</td><td>${m.totalMarks}</td><td><span class="badge badge-${pct>=75?'success':pct>=50?'warning':'danger'}">${pct}%</span></td></tr>`;
+  }).join('');
+  const avg = (data.data.reduce((s,m)=>s+(m.marksObtained/m.totalMarks)*100,0)/data.data.length).toFixed(1);
+  document.getElementById('h-marks').textContent = avg+'%';
+  const ctx = document.getElementById('perfChart');
+  if (ctx) {
+    if (window._pc) window._pc.destroy();
+    window._pc = new Chart(ctx,{type:'line',data:{labels:data.data.map(m=>m.subject),datasets:[{label:'Score %',data:data.data.map(m=>((m.marksObtained/m.totalMarks)*100).toFixed(0)),fill:true,backgroundColor:'rgba(124,58,237,.1)',borderColor:'rgba(124,58,237,.7)',pointBackgroundColor:'#7c3aed',tension:.4}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{min:0,max:100,ticks:{color:'#7a9bb5'},grid:{color:'rgba(0,229,255,.05)'}},x:{ticks:{color:'#7a9bb5'},grid:{display:false}}}}});
+  }
+}
+
+// Load chronological attendance records (Transparency Feed)
+async function loadAttendanceRecords() {
+  if (!wardId) return;
+  const data = await apiFetch(`/attendance/records/${wardId}`);
+  const grid = document.getElementById('att-grid');
+  if (!data.success) { grid.innerHTML = '<div class="empty-state"><div class="icon">⚠️</div><p>Unable to load feed.</p></div>'; return; }
+  const recs = data.data || [];
+  if (!recs.length) { grid.innerHTML = '<div class="empty-state"><div class="icon">📅</div><p>No attendance records yet.</p></div>'; return; }
+  // render chronological list grouped by date
+  const html = recs.map(r => `
+    <div style="padding:0.75rem;border-bottom:1px dashed rgba(255,255,255,.03);display:flex;justify-content:space-between;align-items:center">
+      <div>
+        <div style="font-weight:600">${r.subject} • ${r.slot || ''}</div>
+        <div style="font-size:.85rem;color:var(--text-muted)">${new Date(r.date).toLocaleString()} — ${r.status.toUpperCase()}</div>
+        <div style="font-size:.8rem;color:var(--text-muted)">Marked by: ${r.teacher?.name || 'System'}</div>
+      </div>
+      <div style="text-align:right">${r.status==='present'?'<span class="badge badge-success">Present</span>':'<span class="badge badge-danger">Absent</span>'}</div>
+    </div>`).join('');
+  grid.innerHTML = `<div style="display:flex;flex-direction:column;gap:.5rem">${html}</div>`;
+}
+
+// Warning engine: run per-subject prediction and surface warnings
+async function loadWarnings() {
+  if (!wardId) return;
+  const sumRes = await apiFetch(`/attendance/summary/${wardId}`);
+  if (!sumRes.success) return;
+  const subjects = sumRes.data || [];
+  const warnings = [];
+  for (const s of subjects) {
+    const p = await apiFetch(`/attendance/predict/${wardId}/${encodeURIComponent(s.subject)}?totalClasses=60`);
+    if (p.success && !p.data.isEligible) {
+      warnings.push({ subject: s.subject, details: p.data.message });
+    }
+  }
+  // show warnings as notifications area (simple toast + in-page list)
+  if (warnings.length) {
+    warnings.forEach(w => showToast(`⚠️ ${w.subject}: ${w.details}`, 'error'));
+  }
+}
+
+// Load circulars
+async function loadCirculars() {
+  const container = document.getElementById('circulars-list');
+  container.innerHTML = '<div class="empty-state"><div class="icon">📜</div><p>Loading circulars…</p></div>';
+  const data = await apiFetch('/materials?fileType=circular&department=' + encodeURIComponent(document.getElementById('ward-details')?.textContent || ''));
+  if (!data.success) { container.innerHTML = '<div class="empty-state"><div class="icon">⚠️</div><p>Unable to load circulars.</p></div>'; return; }
+  const list = data.data || [];
+  if (!list.length) { container.innerHTML = '<div class="empty-state"><div class="icon">📜</div><p>No circulars published.</p></div>'; return; }
+  container.innerHTML = list.map(c => `
+    <div style="padding:.85rem;border-bottom:1px dashed rgba(255,255,255,.03)">
+      <div style="font-weight:700">${c.title || c.subject || 'Circular'}</div>
+      <div style="font-size:.85rem;color:var(--text-muted)">${c.createdAt ? new Date(c.createdAt).toLocaleDateString() : ''} • Uploaded by ${c.uploadedBy?.name || 'Admin'}</div>
+      <div style="margin-top:.5rem;font-size:.9rem;color:var(--text-muted)">${c.fileUrl ? `<a href="${c.fileUrl}" target="_blank">Download</a>` : (c.description||'No file attached')}</div>
+    </div>
+  `).join('');
+}
+
+// Submit meeting request via grievances endpoint (category 'meeting')
+async function submitMeetingRequest() {
+  const subject = document.getElementById('req-subject').value;
+  const time = document.getElementById('req-time').value;
+  const message = document.getElementById('req-message').value;
+  if (!subject || !time) return showToast('Please provide subject and preferred time','error');
+  const body = { category: 'meeting', title: subject, description: `Preferred: ${time}\n\n${message}`, isAnonymous: false };
+  const res = await apiFetch('/grievances', { method: 'POST', body: JSON.stringify(body) });
+  if (res.success) { showToast('Meeting request submitted'); document.getElementById('req-subject').value=''; document.getElementById('req-time').value=''; document.getElementById('req-message').value=''; }
+  else showToast(res.message || 'Unable to submit request','error');
+}
+
+// (Document request removed)
+
+// Hook loaders to view switch
+document.querySelectorAll('[data-view="v-attendance"]').forEach(el => el.addEventListener('click', () => { setTimeout(loadAttendanceRecords, 100); setTimeout(loadWarnings, 200); }));
+document.querySelectorAll('[data-view="v-circulars"]').forEach(el => el.addEventListener('click', () => setTimeout(loadCirculars, 100)));
+// Fees & documents removed - no hooks
+
+// After ward loads, run initial checks
+async function postWardLoad() {
+  await loadAttendanceRecords();
+  await loadWarnings();
+  await loadCirculars();
+}
+
+// call postWardLoad after ward info loaded
+const origLoadWardInfo = loadWardInfo;
+loadWardInfo = async function() {
+  await origLoadWardInfo();
+  postWardLoad();
+}
+
+
+</script>
+</body>
+</html>

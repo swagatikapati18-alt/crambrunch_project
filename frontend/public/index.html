@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CRAMBRUNCH — Academic Intelligence Platform</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #ffffff;
+    --bg2: #f8fafc;
+    --surface: rgba(255,255,255,0.8);
+    --surface2: rgba(0,0,0,0.02);
+    --border: rgba(0,0,0,0.06);
+    --border2: rgba(99,102,241,0.2);
+    --blue: #6366f1;
+    --blue-light: #818cf8;
+    --purple: #8b5cf6;
+    --purple-light: #a78bfa;
+    --cyan: #06b6d4;
+    --glow-blue: rgba(99,102,241,0.1);
+    --glow-purple: rgba(139,92,246,0.1);
+    --text: #0f172a;
+    --text-muted: #475569;
+    --text-dim: #94a3b8;
+    --grad1: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #06b6d4 100%);
+    --grad2: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    overflow-x: hidden;
+    cursor: none;
+  }
+
+  /* ─── CURSOR ─── */
+  #cursor-dot {
+    width: 6px; height: 6px;
+    background: var(--blue-light);
+    border-radius: 50%;
+    position: fixed; pointer-events: none; z-index: 9999;
+    transform: translate(-50%,-50%);
+    transition: transform 0.1s, opacity 0.3s;
+    box-shadow: 0 0 12px var(--blue-light);
+  }
+
+  /* ─── ROCKET ─── */
+  #rocket {
+    position: fixed;
+    width: 44px; height: 44px;
+    pointer-events: none;
+    z-index: 9998;
+    transform: translate(-50%,-50%) rotate(-45deg);
+    transition: none;
+    filter: drop-shadow(0 0 10px rgba(79,110,247,0.8));
+    font-size: 36px;
+    line-height: 1;
+    text-align: center;
+  }
+
+  /* ─── NOISE OVERLAY ─── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0; z-index: 1; pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.02'/%3E%3C/svg%3E");
+    opacity: 0.3;
+  }
+
+  /* ─── SHARED GRID LINES ─── */
+  .grid-bg {
+    position: absolute; inset: 0; z-index: 0; overflow: hidden; pointer-events: none;
+    background-image:
+      linear-gradient(rgba(99,102,241,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(99,102,241,0.03) 1px, transparent 1px);
+    background-size: 60px 60px;
+  }
+
+  /* ─── NAV ─── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px 6vw;
+    background: rgba(255,255,255,0.7);
+    backdrop-filter: blur(24px);
+    border-bottom: 1px solid var(--border);
+    transition: padding 0.3s;
+  }
+
+  .nav-logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 22px;
+    letter-spacing: -0.5px;
+    background: var(--grad1);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .nav-links { display: flex; gap: 36px; align-items: center; }
+  .nav-actions { display: flex; gap: 12px; align-items: center; }
+  .nav-links a {
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+    transition: color 0.25s;
+  }
+  .nav-links a:hover { color: var(--text); }
+  .nav-link {
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 600;
+    transition: color 0.25s;
+  }
+  .nav-link:hover { color: var(--text); }
+
+  .btn-nav {
+    background: var(--grad2);
+    color: #fff !important;
+    padding: 9px 22px;
+    border-radius: 100px;
+    font-size: 13px !important;
+    font-weight: 600 !important;
+    transition: opacity 0.25s, transform 0.2s !important;
+    box-shadow: 0 0 20px rgba(79,110,247,0.4);
+  }
+  .btn-nav:hover { opacity: 0.88; transform: translateY(-1px); }
+
+  /* ─── HERO ─── */
+  #hero {
+    position: relative;
+    min-height: 100vh;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    text-align: center;
+    padding: 140px 6vw 100px;
+    overflow: hidden;
+  }
+
+  .hero-orb {
+    position: absolute; border-radius: 50%;
+    pointer-events: none; filter: blur(120px); z-index: 0;
+  }
+  .orb1 { width: 600px; height: 600px; background: radial-gradient(circle, rgba(79,110,247,0.18) 0%, transparent 70%); top: -100px; left: -100px; animation: pulse1 8s ease-in-out infinite; }
+  .orb2 { width: 500px; height: 500px; background: radial-gradient(circle, rgba(139,92,246,0.15) 0%, transparent 70%); bottom: -80px; right: -80px; animation: pulse2 10s ease-in-out infinite; }
+  .orb3 { width: 300px; height: 300px; background: radial-gradient(circle, rgba(34,211,238,0.1) 0%, transparent 70%); top: 50%; right: 20%; animation: pulse1 12s ease-in-out infinite reverse; }
+
+  @keyframes pulse1 { 0%,100%{transform:scale(1) translate(0,0)} 50%{transform:scale(1.15) translate(30px,20px)} }
+  @keyframes pulse2 { 0%,100%{transform:scale(1) translate(0,0)} 50%{transform:scale(1.1) translate(-20px,30px)} }
+
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(79,110,247,0.12);
+    border: 1px solid rgba(79,110,247,0.3);
+    border-radius: 100px;
+    padding: 7px 18px;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    color: var(--blue-light);
+    margin-bottom: 32px;
+    position: relative; z-index: 2;
+    animation: fadeUp 0.8s ease both;
+  }
+  .badge-dot { width: 6px; height: 6px; background: var(--cyan); border-radius: 50%; animation: blink 2s ease infinite; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+  .hero-title {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(24px, 8vw, 100px);
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -4px;
+    position: relative; z-index: 2;
+    animation: fadeUp 0.8s ease 0.15s both;
+    white-space: nowrap;
+  }
+  .hero-title .grad { background: var(--grad1); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+  .hero-title .outline {
+    -webkit-text-stroke: 2px rgba(15,23,42,0.1);
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+  }
+
+  .hero-sub {
+    font-size: clamp(16px, 2vw, 20px);
+    color: var(--text-muted);
+    max-width: 580px;
+    line-height: 1.7;
+    margin: 28px auto 48px;
+    font-weight: 300;
+    position: relative; z-index: 2;
+    animation: fadeUp 0.8s ease 0.3s both;
+  }
+
+  .hero-cta {
+    display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;
+    position: relative; z-index: 2;
+    animation: fadeUp 0.8s ease 0.45s both;
+  }
+
+  .btn-primary {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--grad2);
+    color: #fff;
+    padding: 16px 36px;
+    border-radius: 100px;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    text-decoration: none;
+    transition: transform 0.25s, box-shadow 0.25s;
+    box-shadow: 0 0 40px rgba(79,110,247,0.5), 0 0 80px rgba(79,110,247,0.2);
+    letter-spacing: 0.3px;
+  }
+  .btn-primary:hover { transform: translateY(-3px) scale(1.03); box-shadow: 0 0 60px rgba(79,110,247,0.7), 0 0 100px rgba(79,110,247,0.3); }
+
+  .btn-secondary {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--surface2);
+    color: var(--text);
+    padding: 16px 36px;
+    border-radius: 100px;
+    font-family: 'Syne', sans-serif;
+    font-weight: 600;
+    font-size: 15px;
+    text-decoration: none;
+    border: 1px solid var(--border);
+    transition: border-color 0.25s, background 0.25s, transform 0.25s;
+    letter-spacing: 0.3px;
+  }
+  .btn-secondary:hover { border-color: var(--border2); background: rgba(255,255,255,0.08); transform: translateY(-3px); }
+
+  .hero-stats {
+    display: flex; gap: 48px; justify-content: center; flex-wrap: wrap;
+    margin-top: 80px;
+    position: relative; z-index: 2;
+    animation: fadeUp 0.8s ease 0.6s both;
+  }
+  .stat { text-align: center; }
+  .stat-num {
+    font-family: 'Syne', sans-serif;
+    font-size: 32px; font-weight: 800;
+    background: var(--grad1); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+  .stat-label { font-size: 12px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
+
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* ─── SCROLL REVEAL ─── */
+  .reveal { opacity: 0; transform: translateY(40px); transition: opacity 0.7s ease, transform 0.7s ease; }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+
+  /* ─── SECTIONS COMMON ─── */
+  section { position: relative; overflow: hidden; }
+  .section-inner { position: relative; z-index: 2; max-width: 1200px; margin: 0 auto; padding: 110px 6vw; }
+
+  .section-tag {
+    display: inline-block;
+    font-size: 11px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--blue-light);
+    margin-bottom: 16px;
+    position: relative;
+    padding-left: 24px;
+  }
+  .section-tag::before {
+    content: '';
+    position: absolute; left: 0; top: 50%;
+    transform: translateY(-50%);
+    width: 14px; height: 2px;
+    background: var(--blue-light);
+  }
+
+  .section-title {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(32px, 5vw, 56px);
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -1.5px;
+    margin-bottom: 20px;
+  }
+  .section-sub { font-size: 17px; color: var(--text-muted); max-width: 520px; line-height: 1.7; font-weight: 300; }
+
+  /* ─── FEATURES ─── */
+  #features { background: var(--bg2); }
+
+  .features-header { margin-bottom: 70px; }
+
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 20px;
+  }
+
+  .feat-card {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 32px 28px;
+    transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    cursor: default;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+  }
+  .feat-card::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(circle at top left, var(--card-glow, rgba(99,102,241,0.05)) 0%, transparent 70%);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .feat-card:hover { transform: translateY(-6px) scale(1.02); border-color: var(--border2); box-shadow: 0 20px 60px rgba(0,0,0,0.08), 0 0 30px var(--card-glow, var(--glow-blue)); }
+  .feat-card:hover::before { opacity: 1; }
+
+  .feat-icon {
+    width: 50px; height: 50px; border-radius: 14px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+    margin-bottom: 20px;
+    background: var(--icon-bg, rgba(79,110,247,0.12));
+    border: 1px solid var(--icon-border, rgba(79,110,247,0.2));
+  }
+
+  .feat-name {
+    font-family: 'Syne', sans-serif;
+    font-size: 17px; font-weight: 700;
+    margin-bottom: 10px;
+    letter-spacing: -0.3px;
+  }
+
+  .feat-desc { font-size: 14px; color: var(--text-muted); line-height: 1.65; font-weight: 300; }
+
+  /* ─── ROLES ─── */
+  #roles { background: var(--bg); }
+
+  .roles-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 24px;
+    margin-top: 60px;
+  }
+
+  .role-card {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    padding: 40px 32px;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.3s, border-color 0.3s, box-shadow 0.3s;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+  }
+  .role-card:hover { transform: translateY(-6px); border-color: var(--border2); box-shadow: 0 20px 50px rgba(0,0,0,0.08); }
+
+  .role-num {
+    font-family: 'Syne', sans-serif;
+    font-size: 72px; font-weight: 800; line-height: 1;
+    background: var(--grad1); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    opacity: 0.15;
+    position: absolute; top: 20px; right: 24px;
+  }
+
+  .role-emoji { font-size: 36px; margin-bottom: 20px; display: block; }
+  .role-title { font-family: 'Syne', sans-serif; font-size: 22px; font-weight: 700; margin-bottom: 12px; letter-spacing: -0.5px; }
+  .role-desc { font-size: 14px; color: var(--text-muted); line-height: 1.7; font-weight: 300; }
+
+  /* ─── HOW IT WORKS ─── */
+  #how { background: var(--bg2); }
+
+  .steps-wrap {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 0;
+    margin-top: 70px;
+    position: relative;
+  }
+
+  .steps-wrap::before {
+    content: '';
+    position: absolute;
+    top: 36px; left: 10%; right: 10%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border2), transparent);
+    z-index: 0;
+  }
+
+  .step {
+    text-align: center;
+    padding: 0 20px 40px;
+    position: relative; z-index: 1;
+  }
+
+  .step-num {
+    width: 72px; height: 72px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 24px;
+    font-family: 'Syne', sans-serif;
+    font-size: 22px; font-weight: 800;
+    background: var(--bg2);
+    border: 2px solid var(--border2);
+    color: var(--blue-light);
+    position: relative;
+    transition: border-color 0.3s, box-shadow 0.3s;
+    box-shadow: 0 0 20px rgba(79,110,247,0.2);
+  }
+  .step:hover .step-num { border-color: var(--blue); box-shadow: 0 0 30px rgba(79,110,247,0.5); }
+
+  .step-icon { font-size: 28px; }
+
+  .step-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 18px; font-weight: 700;
+    margin-bottom: 10px; letter-spacing: -0.3px;
+  }
+  .step-desc { font-size: 14px; color: var(--text-muted); line-height: 1.65; font-weight: 300; }
+
+  /* ─── CTA ─── */
+  #cta {
+    background: var(--bg);
+    text-align: center;
+  }
+  .cta-box {
+    background: linear-gradient(135deg, rgba(99,102,241,0.04) 0%, rgba(139,92,246,0.02) 100%);
+    border: 1px solid var(--border2);
+    border-radius: 32px;
+    padding: 90px 60px;
+    position: relative; overflow: hidden;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 20px 80px rgba(99,102,241,0.05);
+  }
+  .cta-box::before {
+    content: '';
+    position: absolute; inset: -1px;
+    background: linear-gradient(135deg, rgba(79,110,247,0.2), transparent, rgba(139,92,246,0.2));
+    border-radius: inherit;
+    z-index: 0;
+    pointer-events: none;
+  }
+  .cta-box > * { position: relative; z-index: 1; }
+
+  .cta-title {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(32px, 5vw, 58px);
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -2px;
+    margin-bottom: 20px;
+  }
+  .cta-sub { font-size: 18px; color: var(--text-muted); margin-bottom: 48px; font-weight: 300; }
+
+  /* ─── FOOTER ─── */
+  footer {
+    background: var(--bg);
+    border-top: 1px solid var(--border);
+    padding: 48px 6vw;
+    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 24px;
+    position: relative; z-index: 2;
+  }
+  .footer-logo { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 20px; background: var(--grad1); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+  .footer-copy { font-size: 13px; color: var(--text-dim); }
+  .footer-links { display: flex; gap: 28px; }
+  .footer-links a { font-size: 13px; color: var(--text-dim); text-decoration: none; transition: color 0.2s; }
+  .footer-links a:hover { color: var(--text-muted); }
+
+  /* ─── GLASS DIVIDER ─── */
+  .divider { width: 100%; height: 1px; background: linear-gradient(90deg, transparent, var(--border), transparent); }
+
+  /* ─── SCROLLBAR ─── */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: rgba(79,110,247,0.3); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(79,110,247,0.5); }
+
+  /* ─── RESPONSIVE ─── */
+  @media (max-width: 992px) {
+    .hero-title { font-size: clamp(36px, 8vw, 80px); letter-spacing: -2px; }
+  }
+  @media (max-width: 768px) {
+    .nav-links { display: none; }
+    .nav-actions { margin-left: auto; }
+    .hero-title { font-size: clamp(32px, 8vw, 64px); letter-spacing: -1px; }
+    .hero-stats { gap: 24px; flex-direction: column; align-items: center; margin-top: 50px; }
+    .steps-wrap::before { display: none; }
+    .cta-box { padding: 60px 30px; }
+    footer { flex-direction: column; align-items: center; text-align: center; }
+    .section-title { font-size: 32px; text-align: center; }
+    .hero-cta { flex-direction: column; gap: 16px; width: 100%; max-width: 300px; margin: 0 auto; }
+    .btn-primary, .btn-secondary { width: 100%; justify-content: center; }
+  }
+  @media (max-width: 480px) {
+    .nav-logo { font-size: 18px; }
+    .hero-title { font-size: clamp(24px, 9vw, 40px); letter-spacing: -1px; }
+    .hero-sub { font-size: 15px; margin-bottom: 32px; }
+    .section-inner { padding: 70px 6vw; }
+    .feat-card, .role-card { padding: 24px 20px; }
+    nav { padding: 16px 5vw; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Custom cursor -->
+<div id="cursor-dot"></div>
+
+<!-- Rocket follower -->
+<div id="rocket">🚀</div>
+
+<!-- ─── NAV ─── -->
+<nav>
+  <div class="nav-logo" style="display:flex;align-items:center;gap:10px">
+    <img src="assets/logo.jpg" alt="Logo" style="height:45px;width:auto;border-radius:8px;"/>
+    <span>CRAMBRUNCH</span>
+  </div>
+  <div class="nav-links">
+    <a href="#features">Features</a>
+    <a href="#roles">Roles</a>
+    <a href="#how">How It Works</a>
+    <a href="#cta" class="btn-nav">Get Started</a>
+  </div>
+  <div class="nav-actions">
+    <a href="/pages/login.html?mode=login" class="nav-link">Log in</a>
+    <a href="/pages/login.html?mode=signup" class="btn-nav">Sign up</a>
+  </div>
+</nav>
+
+<!-- ─── HERO ─── -->
+<section id="hero">
+  <div class="grid-bg"></div>
+  <div class="hero-orb orb1"></div>
+  <div class="hero-orb orb2"></div>
+  <div class="hero-orb orb3"></div>
+
+  <div class="hero-badge"><span class="badge-dot"></span> Academic Intelligence Platform</div>
+
+  <h1 class="hero-title">
+    <span class="grad">CRAM</span><span class="outline">BRUNCH</span>
+  </h1>
+
+  <p class="hero-sub">
+    Where academic management meets intelligence. One platform to track, predict, connect, and elevate the entire campus experience.
+  </p>
+
+  <div class="hero-cta">
+    <a href="#cta" class="btn-primary">✦ Get Started</a>
+    <a href="#features" class="btn-secondary">Explore Features →</a>
+  </div>
+
+ 
+</section>
+
+<div class="divider"></div>
+
+<!-- ─── FEATURES ─── -->
+<section id="features">
+  <div class="grid-bg"></div>
+  <div class="section-inner">
+    <div class="features-header reveal">
+      <div class="section-tag">Core Features</div>
+      <h2 class="section-title">Everything your campus<br>needs, unified.</h2>
+      <p class="section-sub">Built to eliminate paperwork and fragmentation. Every tool your institution needs in one seamless system.</p>
+    </div>
+
+    <div class="features-grid">
+
+      <div class="feat-card reveal" style="--card-glow: rgba(79,110,247,0.15); --icon-bg: rgba(79,110,247,0.1); --icon-border: rgba(79,110,247,0.2);" data-delay="0">
+        <div class="feat-icon">👤</div>
+        <div class="feat-name">Student Management</div>
+        <div class="feat-desc">Centralized profiles for every student — demographics, academic history, and contact details, all in one secure place.</div>
+      </div>
+
+      <div class="feat-card reveal" style="--card-glow: rgba(139,92,246,0.15); --icon-bg: rgba(139,92,246,0.1); --icon-border: rgba(139,92,246,0.2);" data-delay="1">
+        <div class="feat-icon">📊</div>
+        <div class="feat-name">Attendance Tracking & Prediction</div>
+        <div class="feat-desc">Auto-calculated attendance with smart 75% prediction alerts — know your exam eligibility before results day.</div>
+      </div>
+
+      <div class="feat-card reveal" style="--card-glow: rgba(34,211,238,0.12); --icon-bg: rgba(34,211,238,0.08); --icon-border: rgba(34,211,238,0.18);" data-delay="2">
+        <div class="feat-icon">📈</div>
+        <div class="feat-name">Performance Monitoring</div>
+        <div class="feat-desc">Track grades, subject-wise trends, and academic growth with beautiful visual dashboards powered by Chart.js.</div>
+      </div>
+
+
+      <div class="feat-card reveal" style="--card-glow: rgba(52,211,153,0.12); --icon-bg: rgba(52,211,153,0.08); --icon-border: rgba(52,211,153,0.18);" data-delay="4">
+        <div class="feat-icon">🔄</div>
+        <div class="feat-name">Skill Exchange & Study Materials</div>
+        <div class="feat-desc">Students can share expertise and learn from peers — a collaborative knowledge network built right into campus life.Organized study resource sharing for all.</div>
+      </div>
+
+      <div class="feat-card reveal" style="--card-glow: rgba(239,68,68,0.12); --icon-bg: rgba(239,68,68,0.08); --icon-border: rgba(239,68,68,0.18);" data-delay="5">
+        <div class="feat-icon">🔒</div>
+        <div class="feat-name">Anonymous Complaints & Notifications</div>
+        <div class="feat-desc">Submit issues anonymously with support-based escalation, ensuring every voice is heard without fear.Auto-email parents on low attendance and result announcements.</div>
+      </div>
+
+      <div class="feat-card reveal" style="--card-glow: rgba(251,191,36,0.12); --icon-bg: rgba(251,191,36,0.08); --icon-border: rgba(251,191,36,0.18);" data-delay="6">
+        <div class="feat-icon">🗳️</div>
+        <div class="feat-name">Feedback & CR Selection</div>
+        <div class="feat-desc">Transparent online CR elections and teacher feedback systems for unbiased, democratic campus governance.</div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ─── ROLES ─── -->
+<section id="roles">
+  <div class="grid-bg"></div>
+  <div class="section-inner">
+    <div class="reveal">
+      <div class="section-tag">Roles</div>
+      <h2 class="section-title">Built for everyone<br>on campus.</h2>
+      <p class="section-sub">Role-based access ensures the right people see the right information — always.</p>
+    </div>
+
+    <div class="roles-grid">
+      <div class="role-card reveal">
+        <div class="role-num">01</div>
+        <span class="role-emoji">🎓</span>
+        <div class="role-title">Student</div>
+        <div class="role-desc">View attendance, track grades, access study materials, exchange skills, submit complaints, and vote in CR elections — all from one dashboard.</div>
+      </div>
+      <div class="role-card reveal">
+        <div class="role-num">02</div>
+        <span class="role-emoji">👨‍🏫</span>
+        <div class="role-title">Teacher</div>
+        <div class="role-desc">Mark attendance, upload grades, share resources, view student performance analytics, and receive transparent peer feedback.</div>
+      </div>
+      <div class="role-card reveal">
+        <div class="role-num">03</div>
+        <span class="role-emoji">👨‍👩‍👧</span>
+        <div class="role-title">Parent</div>
+        <div class="role-desc">Receive real-time email alerts for attendance drops and result declarations. Stay connected to your child's academic journey without the guesswork.</div>
+      </div>
+      
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ─── HOW IT WORKS ─── -->
+<section id="how">
+  <div class="grid-bg"></div>
+  <div class="section-inner">
+    <div class="reveal" style="text-align:center; margin-bottom: 0;">
+      <div class="section-tag" style="display:inline-block;">How It Works</div>
+      <h2 class="section-title" style="text-align:center;">Four steps to<br>campus intelligence.</h2>
+    </div>
+
+    <div class="steps-wrap">
+      <div class="step reveal">
+        <div class="step-num"><span class="step-icon">🔐</span></div>
+        <div class="step-title">Login</div>
+        <div class="step-desc">Secure role-based authentication for students, teachers, parents, and admins.</div>
+      </div>
+      <div class="step reveal">
+        <div class="step-num"><span class="step-icon">🖥️</span></div>
+        <div class="step-title">Dashboard</div>
+        <div class="step-desc">A personalized command center showing your most important data at a glance.</div>
+      </div>
+      <div class="step reveal">
+        <div class="step-num"><span class="step-icon">⚙️</span></div>
+        <div class="step-title">Manage</div>
+        <div class="step-desc">Track attendance, upload grades, manage library records, and handle complaints effortlessly.</div>
+      </div>
+      <div class="step reveal">
+        <div class="step-num"><span class="step-icon">💡</span></div>
+        <div class="step-title">Insights</div>
+        <div class="step-desc">Visual reports and predictive analytics that drive smarter academic decisions.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ─── CTA ─── -->
+<section id="cta">
+  <div class="section-inner" style="padding-top: 80px; padding-bottom: 80px;">
+    <div class="cta-box reveal">
+      <div class="section-tag" style="display:inline-block; margin-bottom: 24px;">Get Started Today</div>
+      <h2 class="cta-title">Digitize Academic<br><span style="background: var(--grad1); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Management.</span></h2>
+      <p class="cta-sub">Join the future of campus intelligence. No paperwork. No silos. Just clarity.</p>
+      <a href="/pages/login.html?mode=signup" class="btn-primary" style="font-size: 17px; padding: 18px 48px;">✦ Start Now</a>
+    </div>
+  </div>
+</section>
+
+<!-- ─── FOOTER ─── -->
+<footer>
+  <div class="footer-logo">CRAMBRUNCH</div>
+  <div class="footer-copy">© 2025 CRAMBRUNCH. Built for academic excellence.</div>
+  <div class="footer-links">
+    <a href="#features">Features</a>
+    <a href="#roles">Roles</a>
+    <a href="#how">How It Works</a>
+  </div>
+</footer>
+
+<script>
+  // ─── CURSOR DOT ───
+  const dot = document.getElementById('cursor-dot');
+  document.addEventListener('mousemove', e => {
+    dot.style.left = e.clientX + 'px';
+    dot.style.top  = e.clientY + 'px';
+  });
+
+  // ─── ROCKET FOLLOWER ───
+  const rocket = document.getElementById('rocket');
+  let rx = window.innerWidth / 2, ry = window.innerHeight / 2;
+  let tx = rx, ty = ry;
+  let prevRx = rx, prevRy = ry;
+
+  document.addEventListener('mousemove', e => {
+    tx = Math.max(30, Math.min(window.innerWidth - 30, e.clientX));
+    ty = Math.max(30, Math.min(window.innerHeight - 30, e.clientY));
+  });
+
+  function animateRocket() {
+    const ease = 0.08;
+    const dx = tx - rx;
+    const dy = ty - ry;
+    rx += dx * ease;
+    ry += dy * ease;
+
+    const moveX = rx - prevRx;
+    const moveY = ry - prevRy;
+    const angle = Math.atan2(moveY, moveX) * (180 / Math.PI);
+    const speed = Math.sqrt(moveX * moveX + moveY * moveY);
+    const adjustedAngle = speed > 0.5 ? angle - 45 : (parseFloat(rocket.dataset.lastAngle) || -45);
+
+    rocket.dataset.lastAngle = adjustedAngle;
+    rocket.style.left = rx + 'px';
+    rocket.style.top  = ry + 'px';
+    rocket.style.transform = `translate(-50%,-50%) rotate(${adjustedAngle}deg)`;
+
+    prevRx = rx;
+    prevRy = ry;
+    requestAnimationFrame(animateRocket);
+  }
+  animateRocket();
+
+  // ─── SCROLL REVEAL ───
+  const reveals = document.querySelectorAll('.reveal');
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((entry, i) => {
+      if (entry.isIntersecting) {
+        const delay = entry.target.dataset.delay ? parseInt(entry.target.dataset.delay) * 80 : 0;
+        setTimeout(() => { entry.target.classList.add('visible'); }, delay);
+        io.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.12 });
+  reveals.forEach(el => io.observe(el));
+
+  // ─── SMOOTH SCROLL ───
+  document.querySelectorAll('a[href^="#"]').forEach(a => {
+    a.addEventListener('click', e => {
+      const target = document.querySelector(a.getAttribute('href'));
+      if (target) { e.preventDefault(); target.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+    });
+  });
+
+  // ─── NAV SHRINK ON SCROLL ───
+  const nav = document.querySelector('nav');
+  window.addEventListener('scroll', () => {
+    if (window.scrollY > 60) { nav.style.padding = '12px 6vw'; }
+    else { nav.style.padding = '20px 6vw'; }
+  });
+
+  // ─── FEATURE CARD MOUSE GLOW ───
+  document.querySelectorAll('.feat-card').forEach(card => {
+    card.addEventListener('mousemove', e => {
+      const rect = card.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      card.style.background = `radial-gradient(circle at ${x}px ${y}px, rgba(79,110,247,0.06) 0%, rgba(255,255,255,0.03) 60%)`;
+    });
+    card.addEventListener('mouseleave', () => {
+      card.style.background = 'var(--surface)';
+    });
+  });
+</script>
+</body>
+</html>

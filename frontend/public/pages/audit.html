@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Audit Ledger - CRAMBRUNCH</title>
+    <link rel="stylesheet" href="../css/main.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .audit-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .audit-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .audit-title {
+            font-size: 2rem;
+            color: #2c3e50;
+            margin: 0;
+        }
+
+        .audit-subtitle {
+            color: #7f8c8d;
+            margin: 5px 0 0 0;
+            font-size: 0.9rem;
+        }
+
+        .ledger-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 10px;
+            padding: 8px 12px;
+            border-radius: 999px;
+            background: #e8f6ee;
+            color: #1e7e4b;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .filters-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .filter-label {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+        }
+
+        .filter-input, .filter-select {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+
+        .filter-input:focus, .filter-select:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+        }
+
+        .filter-actions {
+            display: flex;
+            gap: 10px;
+            align-items: end;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: #3498db;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #2980b9;
+        }
+
+        .btn-secondary {
+            background: #95a5a6;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #7f8c8d;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border-left: 4px solid #3498db;
+        }
+
+        .stat-title {
+            font-size: 0.9rem;
+            color: #7f8c8d;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #2c3e50;
+            margin: 0;
+        }
+
+        .audit-table-container {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .audit-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .audit-table th {
+            background: #f8f9fa;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            color: #2c3e50;
+            border-bottom: 2px solid #e0e0e0;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .audit-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e0e0e0;
+            font-size: 0.9rem;
+        }
+
+        .audit-table tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        .action-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .action-login { background: #d4edda; color: #155724; }
+        .action-create { background: #cce5ff; color: #004085; }
+        .action-update { background: #fff3cd; color: #856404; }
+        .action-delete { background: #f8d7da; color: #721c24; }
+        .action-approve { background: #d1ecf1; color: #0c5460; }
+        .action-reject { background: #f5c6cb; color: #721c24; }
+
+        .role-badge {
+            padding: 2px 6px;
+            border-radius: 8px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .role-super_admin { background: #e74c3c; color: white; }
+        .role-hod { background: #f39c12; color: white; }
+        .role-teacher { background: #27ae60; color: white; }
+        .role-student { background: #3498db; color: white; }
+        .role-parent { background: #9b59b6; color: white; }
+
+        .timestamp {
+            color: #7f8c8d;
+            font-size: 0.8rem;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-top: 20px;
+            padding: 20px;
+        }
+
+        .pagination-btn {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            background: white;
+            color: #2c3e50;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .pagination-btn:hover:not(:disabled) {
+            background: #3498db;
+            color: white;
+            border-color: #3498db;
+        }
+
+        .pagination-btn:disabled {
+            background: #f8f9fa;
+            color: #6c757d;
+            cursor: not-allowed;
+        }
+
+        .pagination-info {
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            border: 1px solid #f5c6cb;
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+            font-style: italic;
+        }
+
+        @media (max-width: 768px) {
+            .audit-container {
+                padding: 10px;
+            }
+
+            .audit-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+
+            .filters-section {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .audit-table {
+                font-size: 0.8rem;
+            }
+
+            .audit-table th,
+            .audit-table td {
+                padding: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="audit-container">
+        <div class="audit-header">
+            <div>
+                <h1 class="audit-title">Admin Audit Ledger</h1>
+                <p class="audit-subtitle">Permanent, append-only record of system actions for total transparency</p>
+                <div class="ledger-badge">
+                    <i class="fas fa-shield-alt"></i>
+                    Immutable ledger enabled
+                </div>
+            </div>
+            <button class="btn btn-secondary" onclick="exportAuditLogs()">
+                <i class="fas fa-download"></i> Export Logs
+            </button>
+        </div>
+
+        <!-- Error Message -->
+        <div id="error-message" class="error" style="display: none;"></div>
+
+        <!-- Statistics Cards -->
+        <div id="stats-section" class="stats-grid">
+            <!-- Stats will be populated by JavaScript -->
+        </div>
+
+        <!-- Filters Section -->
+        <div class="filters-section">
+            <div class="filter-group">
+                <label class="filter-label">Action Type</label>
+                <select id="action-filter" class="filter-select">
+                    <option value="">All Actions</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label class="filter-label">Resource Type</label>
+                <select id="resource-filter" class="filter-select">
+                    <option value="">All Resources</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label class="filter-label">User Email</label>
+                <input type="text" id="user-filter" class="filter-input" placeholder="Search by email...">
+            </div>
+
+            <div class="filter-group">
+                <label class="filter-label">Start Date</label>
+                <input type="date" id="start-date" class="filter-input">
+            </div>
+
+            <div class="filter-group">
+                <label class="filter-label">End Date</label>
+                <input type="date" id="end-date" class="filter-input">
+            </div>
+
+            <div class="filter-actions">
+                <button class="btn btn-primary" onclick="applyFilters()">
+                    <i class="fas fa-search"></i> Apply Filters
+                </button>
+                <button class="btn btn-secondary" onclick="clearFilters()">
+                    <i class="fas fa-times"></i> Clear
+                </button>
+            </div>
+        </div>
+
+        <!-- Audit Logs Table -->
+        <div class="audit-table-container">
+            <table class="audit-table">
+                <thead>
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>User</th>
+                        <th>Role</th>
+                        <th>Action</th>
+                        <th>Resource</th>
+                        <th>Description</th>
+                        <th>Details</th>
+                    </tr>
+                </thead>
+                <tbody id="audit-table-body">
+                    <tr>
+                        <td colspan="7" class="loading">
+                            <i class="fas fa-spinner fa-spin"></i> Loading audit logs...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        <div id="pagination-section" class="pagination" style="display: none;">
+            <!-- Pagination will be populated by JavaScript -->
+        </div>
+    </div>
+
+    <script>
+        let currentPage = 1;
+        let currentFilters = {};
+        let auditStats = {};
+
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', function() {
+            loadFilterOptions();
+            loadAuditLogs();
+            loadAuditStats();
+            </button>
+        </div>
+
+        <!-- Error Message -->
+        <div id="error-message" class="error" style="display: none;"></div>
+
+        <!-- Statistics Cards -->
+        <div id="stats-section" class="stats-grid">
+            <!-- Stats will be populated by JavaScript -->
+        </div>
+
+        <!-- Filters Section -->
+        <div class="filters-section">
+            <div class="filter-group">
+                <label class="filter-label">Action Type</label>
+                <select id="action-filter" class="filter-select">
+                    <option value="">All Actions</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label class="filter-label">Resource Type</label>
+                <select id="resource-filter" class="filter-select">
+                    <option value="">All Resources</option>
+                </select>
+            </div>
+
+            <div class="filter-group">
+                <label class="filter-label">User Email</label>
+                <input type="text" id="user-filter" class="filter-input" placeholder="Search by email...">
+            </div>
+
+            <div class="filter-group">
+                <label class="filter-label">Start Date</label>
+                <input type="date" id="start-date" class="filter-input">
+            </div>
+
+            <div class="filter-group">
+                <label class="filter-label">End Date</label>
+                <input type="date" id="end-date" class="filter-input">
+            </div>
+
+            <div class="filter-actions">
+                <button class="btn btn-primary" onclick="applyFilters()">
+                    <i class="fas fa-search"></i> Apply Filters
+                </button>
+                <button class="btn btn-secondary" onclick="clearFilters()">
+                    <i class="fas fa-times"></i> Clear
+                </button>
+            </div>
+        </div>
+
+        <!-- Audit Logs Table -->
+        <div class="audit-table-container">
+            <table class="audit-table">
+                <thead>
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>User</th>
+                        <th>Role</th>
+                        <th>Action</th>
+                        <th>Resource</th>
+                        <th>Description</th>
+                        <th>Details</th>
+                    </tr>
+                </thead>
+                <tbody id="audit-table-body">
+                    <tr>
+                        <td colspan="7" class="loading">
+                            <i class="fas fa-spinner fa-spin"></i> Loading audit logs...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        <div id="pagination-section" class="pagination" style="display: none;">
+            <!-- Pagination will be populated by JavaScript -->
+        </div>
+    </div>
+
+    <script>
+        let currentPage = 1;
+        let currentFilters = {};
+        let auditStats = {};
+
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', function() {
+            loadFilterOptions();
+            loadAuditLogs();
+            loadAuditStats();
+        });
+
+        // Load filter options
+        async function loadFilterOptions() {
+            try {
+                const [actionsResponse, resourcesResponse] = await Promise.all([
+                    fetch('/api/audit/actions', {
+                        headers: { 'Authorization': `Bearer ${localStorage.getItem('cb_token')}` }
+                    }),
+                    fetch('/api/audit/resource-types', {
+                        headers: { 'Authorization': `Bearer ${localStorage.getItem('cb_token')}` }
+                    })
+                ]);
+
+                const actionsData = await actionsResponse.json();
+                const resourcesData = await resourcesResponse.json();
+
+                if (actionsData.success) {
+                    const actionSelect = document.getElementById('action-filter');
+                    actionsData.actions.forEach(action => {
+                        const option = document.createElement('option');
+                        option.value = action;
+                        option.textContent = action.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase());
+                        actionSelect.appendChild(option);
+                    });
+                }
+
+                if (resourcesData.success) {
+                    const resourceSelect = document.getElementById('resource-filter');
+                    resourcesData.resourceTypes.forEach(resource => {
+                        const option = document.createElement('option');
+                        option.value = resource;
+                        option.textContent = resource.replace(/_/g, ' ').toLowerCase().replace(/\b\w/g, l => l.toUpperCase());
+                        resourceSelect.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('Error loading filter options:', error);
+            }
+        }
+
+        // Load audit statistics
+        async function loadAuditStats() {
+            try {
+                const response = await fetch('/api/audit/stats', {
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('cb_token')}` }
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    auditStats = data.stats;
+                    renderStats();
+                }
+            } catch (error) {
+                console.error('Error loading audit stats:', error);
+            }
+        }
+
+        // Render statistics cards
+        function renderStats() {
+            const statsSection = document.getElementById('stats-section');
+            const stats = [
+                { title: 'Total Records', value: auditStats.totalLogs || 0, icon: 'fas fa-book' },
+                { title: 'Active Users', value: auditStats.userStats?.length || 0, icon: 'fas fa-users' },
+                { title: 'Resources Tracked', value: auditStats.resourceStats?.length || 0, icon: 'fas fa-database' },
+                { title: 'Today\'s Activity', value: auditStats.logsToday ?? getTodaysActivity(), icon: 'fas fa-calendar-day' }
+            ];
+
+            statsSection.innerHTML = stats.map(stat => `
+                <div class="stat-card">
+                    <div class="stat-title">
+                        <i class="${stat.icon}"></i> ${stat.title}
+                    </div>
+                    <div class="stat-value">${stat.value}</div>
+                </div>
+            `).join('');
+        }
+
+        // Get today's activity count
+        function getTodaysActivity() {
+            const today = new Date().toISOString().split('T')[0];
+            const todayStats = auditStats.dailyStats?.find(stat =>
+                stat._id === today
+            );
+            return todayStats ? todayStats.count : 0;
+        }
+
+        // Load audit logs
+        async function loadAuditLogs(page = 1, filters = {}) {
+            try {
+                showError('');
+                const tableBody = document.getElementById('audit-table-body');
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="loading">
+                            <i class="fas fa-spinner fa-spin"></i> Loading audit logs...
+                        </td>
+                    </tr>
+                `;
+
+                const queryParams = new URLSearchParams({
+                    page,
+                    limit: 50,
+                    ...filters
+                });
+
+                const response = await fetch(`/api/audit/logs?${queryParams}`, {
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('cb_token')}` }
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    currentPage = page;
+                    renderAuditLogs(data.data);
+                    renderPagination(data.pagination);
+                } else {
+                    showError(data.message || 'Failed to load audit logs');
+                    tableBody.innerHTML = `
+                        <tr>
+                            <td colspan="7" class="no-data">
+                                <i class="fas fa-exclamation-triangle"></i> No audit logs found
+                            </td>
+                        </tr>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error loading audit logs:', error);
+                showError('Failed to load audit logs. Please try again.');
+                document.getElementById('audit-table-body').innerHTML = `
+                    <tr>
+                        <td colspan="7" class="no-data">
+                            <i class="fas fa-exclamation-triangle"></i> Error loading audit logs
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+
+        // Render audit logs table
+        function renderAuditLogs(logs) {
+            const tableBody = document.getElementById('audit-table-body');
+
+            if (logs.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="no-data">
+                            <i class="fas fa-inbox"></i> No audit logs found matching your criteria
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tableBody.innerHTML = logs.map(log => `
+                <tr>
+                    <td class="timestamp">${formatTimestamp(log.timestamp)}</td>
+                    <td>${log.userEmail}</td>
+                    <td>
+                        <span class="role-badge role-${log.userRole}">
+                            ${log.userRole.replace('_', ' ')}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="action-badge action-${getActionClass(log.action)}">
+                            ${log.action.replace(/_/g, ' ')}
+                        </span>
+                    </td>
+                    <td>${log.resourceType}</td>
+                    <td>${log.description}</td>
+                    <td>
+                        <button class="btn btn-secondary" onclick="showLogDetails(${JSON.stringify(log).replace(/"/g, '&quot;')})">
+                            <i class="fas fa-eye"></i> View
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Render pagination
+        function renderPagination(pagination) {
+            const paginationSection = document.getElementById('pagination-section');
+
+            if (pagination.totalPages <= 1) {
+                paginationSection.style.display = 'none';
+                return;
+            }
+
+            paginationSection.style.display = 'flex';
+            paginationSection.innerHTML = `
+                <button class="pagination-btn" onclick="loadAuditLogs(${pagination.currentPage - 1}, currentFilters)" ${!pagination.hasPrev ? 'disabled' : ''}>
+                    <i class="fas fa-chevron-left"></i> Previous
+                </button>
+
+                <span class="pagination-info">
+                    Page ${pagination.currentPage} of ${pagination.totalPages}
+                    (${pagination.totalRecords} total records)
+                </span>
+
+                <button class="pagination-btn" onclick="loadAuditLogs(${pagination.currentPage + 1}, currentFilters)" ${!pagination.hasNext ? 'disabled' : ''}>
+                    Next <i class="fas fa-chevron-right"></i>
+                </button>
+            `;
+        }
+
+        // Apply filters
+        function applyFilters() {
+            const filters = {
+                action: document.getElementById('action-filter').value,
+                resourceType: document.getElementById('resource-filter').value,
+                userEmail: document.getElementById('user-filter').value,
+                startDate: document.getElementById('start-date').value,
+                endDate: document.getElementById('end-date').value
+            };
+
+            // Remove empty filters
+            Object.keys(filters).forEach(key => {
+                if (!filters[key]) delete filters[key];
+            });
+
+            currentFilters = filters;
+            loadAuditLogs(1, filters);
+        }
+
+        // Clear filters
+        function clearFilters() {
+            document.getElementById('action-filter').value = '';
+            document.getElementById('resource-filter').value = '';
+            document.getElementById('user-filter').value = '';
+            document.getElementById('start-date').value = '';
+            document.getElementById('end-date').value = '';
+
+            currentFilters = {};
+            loadAuditLogs(1);
+        }
+
+        // Show log details
+        function showLogDetails(log) {
+            const details = {
+                'Timestamp': formatTimestamp(log.timestamp),
+                'User': `${log.userEmail} (${log.userRole})`,
+                'Action': log.action.replace(/_/g, ' '),
+                'Resource Type': log.resourceType,
+                'Resource ID': log.resourceId || 'N/A',
+                'Description': log.description,
+                'IP Address': log.ipAddress || 'N/A',
+                'User Agent': log.userAgent || 'N/A'
+            };
+
+            let detailsHtml = '<div style="max-height: 400px; overflow-y: auto;">';
+            Object.entries(details).forEach(([key, value]) => {
+                detailsHtml += `<p><strong>${key}:</strong> ${value}</p>`;
+            });
+
+            if (log.oldValues) {
+                detailsHtml += `<p><strong>Previous Values:</strong></p><pre>${JSON.stringify(log.oldValues, null, 2)}</pre>`;
+            }
+
+            if (log.newValues) {
+                detailsHtml += `<p><strong>New Values:</strong></p><pre>${JSON.stringify(log.newValues, null, 2)}</pre>`;
+            }
+
+            if (log.metadata && Object.keys(log.metadata).length > 0) {
+                detailsHtml += `<p><strong>Additional Metadata:</strong></p><pre>${JSON.stringify(log.metadata, null, 2)}</pre>`;
+            }
+
+            detailsHtml += '</div>';
+
+            const detailWindow = window.open('', '_blank', 'width=760,height=640');
+            if (!detailWindow) {
+                alert('Popup blocked. Please allow popups to view audit details.');
+                return;
+            }
+
+            detailWindow.document.write(`
+                <html>
+                <head>
+                    <title>Audit Record Details</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; padding: 24px; line-height: 1.5; color: #222; }
+                        h1 { margin-top: 0; font-size: 1.4rem; }
+                        pre { background: #f5f5f5; padding: 12px; border-radius: 8px; overflow: auto; }
+                        p { margin: 0 0 10px; }
+                    </style>
+                </head>
+                <body>
+                    <h1>Audit Record Details</h1>
+                    ${detailsHtml}
+                </body>
+                </html>
+            `);
+            detailWindow.document.close();
+        }
+
+        // Export audit logs
+        function exportAuditLogs() {
+            const queryParams = new URLSearchParams(currentFilters);
+            const token = localStorage.getItem('cb_token');
+            const exportUrl = `/api/audit/export?${queryParams.toString()}`;
+
+            fetch(exportUrl, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            }).then(async response => {
+                if (!response.ok) {
+                    const error = await response.json().catch(() => ({ message: 'Unable to export audit logs' }));
+                    throw new Error(error.message || 'Unable to export audit logs');
+                }
+
+                const blob = await response.blob();
+                const downloadUrl = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = downloadUrl;
+                a.download = `audit-ledger-${new Date().toISOString().split('T')[0]}.csv`;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                window.URL.revokeObjectURL(downloadUrl);
+            }).catch(error => {
+                showError(error.message || 'Unable to export audit logs');
+            });
+        }
+
+        // Utility functions
+        function formatTimestamp(timestamp) {
+            const date = new Date(timestamp);
+            return date.toLocaleString();
+        }
+
+        function getActionClass(action) {
+            const actionMap = {
+                'LOGIN': 'login',
+                'LOGOUT': 'login',
+                'CREATE_USER': 'create',
+                'UPDATE_USER': 'update',
+                'DELETE_USER': 'delete',
+                'APPROVE_STUDENT': 'approve',
+                'REJECT_STUDENT': 'reject'
+            };
+            return actionMap[action] || 'update';
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('error-message');
+            if (message) {
+                errorDiv.textContent = message;
+                errorDiv.style.display = 'block';
+            } else {
+                errorDiv.style.display = 'none';
+            }
+        }
+
+        // Check authentication — app uses 'cb_token'
+        const token = localStorage.getItem('cb_token');
+        const userStr = localStorage.getItem('cb_user');
+        if (!token || !userStr) {
+            window.location.href = '/';
+        } else {
+            try {
+                const u = JSON.parse(userStr);
+                if (!['super_admin', 'hod'].includes(u.role)) {
+                    window.location.href = '/';
+                }
+                // Hide export button for HODs (read-only access)
+                if (u.role === 'hod') {
+                    document.querySelector('.audit-header button')?.remove();
+                }
+            } catch(e) { window.location.href = '/'; }
+        }
+    </script>
+</body>
+</html>

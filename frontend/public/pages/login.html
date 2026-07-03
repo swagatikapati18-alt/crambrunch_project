@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>CRAMBRUNCH — Smart Campus Platform</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="/css/main.css"/>
+<style>
+  :root {
+    --primary: #ffffff;
+    --accent: #007bff;
+    --accent2: #6c757d;
+    --surface: #f8f9fa;
+    --surface2: #e9ecef;
+    --text: #212529;
+    --text-muted: #6c757d;
+    --border: rgba(0,123,255,0.12);
+    --success: #28a745;
+    --warning: #ffc107;
+    --danger: #dc3545;
+    --font-head: 'Syne', sans-serif;
+    --font-body: 'DM Sans', sans-serif;
+    --radius: 12px;
+    --shadow: 0 8px 32px rgba(0,0,0,0.1);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html, body { width:100%; min-height:100%; }
+  body {
+    font-family: var(--font-body);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  body.auth-page {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9eef8 100%);
+  }
+  body.auth-page .landing {
+    display: none;
+  }
+  /* BG grid */
+  body::before {
+    content:'';
+    position:fixed; inset:0;
+    background-image:
+      linear-gradient(rgba(0,123,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,123,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events:none; z-index:0;
+  }
+
+  /* ===== LANDING ===== */
+  .landing {
+    position:relative;
+    z-index:1;
+    min-height:100vh;
+    width:100%;
+    display:flex;
+    flex-direction:column;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    overflow:hidden;
+  }
+
+  nav {
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding: 1.5rem 4rem;
+    backdrop-filter: blur(10px);
+    background: rgba(255,255,255,0.1);
+    border-bottom: 1px solid rgba(255,255,255,0.2);
+  }
+  .logo {
+    font-family: var(--font-head);
+    font-size: 1.8rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    background: linear-gradient(135deg, #fff 0%, #e0e7ff 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .nav-actions { display:flex; gap:1rem; align-items:center; }
+  .btn {
+    font-family: var(--font-body);
+    font-weight:500;
+    font-size:0.9rem;
+    border:none;
+    cursor:pointer;
+    border-radius:25px;
+    padding: 0.6rem 1.8rem;
+    transition: all 0.3s ease;
+    text-decoration:none;
+    display:inline-block;
+    backdrop-filter: blur(10px);
+  }
+  .btn-ghost {
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.3);
+  }
+  .btn-ghost:hover {
+    background: rgba(255,255,255,0.2);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+  }
+  .btn-primary {
+    background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+    color: #fff;
+    font-weight: 600;
+    box-shadow: 0 4px 15px rgba(255,107,107,0.3);
+  }
+  .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(255,107,107,0.4);
+  }
+
+  /* Hero */
+  .hero {
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    padding: 4rem 2rem 2rem;
+    position:relative;
+    z-index:2;
+  }
+  .hero-badge {
+    display:inline-block;
+    margin-bottom:2rem;
+    padding: 0.5rem 1.5rem;
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 50px;
+    font-size: 0.85rem;
+    color: #fff;
+    letter-spacing: 0.1em;
+    font-weight: 500;
+    backdrop-filter: blur(10px);
+    animation: fadeInUp 0.8s ease;
+  }
+  .hero h1 {
+    font-family: var(--font-head);
+    font-size: clamp(3rem, 8vw, 6rem);
+    font-weight: 900;
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+    margin-bottom: 1.5rem;
+    color: #fff;
+    text-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    animation: fadeInUp 1s ease 0.2s both;
+  }
+  .hero h1 span {
+    background: linear-gradient(135deg, #ffd89b 0%, #19547b 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .hero p {
+    font-size: 1.2rem;
+    color: rgba(255,255,255,0.9);
+    max-width: 600px;
+    line-height: 1.6;
+    margin-bottom: 3rem;
+    animation: fadeInUp 1s ease 0.4s both;
+  }
+  .hero-actions {
+    display:flex;
+    gap:1.5rem;
+    flex-wrap:wrap;
+    justify-content:center;
+    animation: fadeInUp 1s ease 0.6s both;
+  }
+
+  /* Floating Elements */
+  .floating-shapes {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    z-index: 1;
+  }
+  .shape {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.1);
+    backdrop-filter: blur(20px);
+    animation: float 6s ease-in-out infinite;
+  }
+  .shape-1 {
+    width: 200px;
+    height: 200px;
+    top: 10%;
+    left: 10%;
+    animation-delay: 0s;
+  }
+  .shape-2 {
+    width: 150px;
+    height: 150px;
+    top: 60%;
+    right: 15%;
+    animation-delay: -2s;
+    background: rgba(255,107,107,0.2);
+  }
+  .shape-3 {
+    width: 100px;
+    height: 100px;
+    bottom: 20%;
+    left: 20%;
+    animation-delay: -4s;
+    background: rgba(108, 92, 231, 0.2);
+  }
+  .shape-4 {
+    width: 300px;
+    height: 300px;
+    top: 30%;
+    right: 5%;
+    animation-delay: -1s;
+    background: rgba(255,193,7,0.1);
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-20px) rotate(180deg); }
+  }
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Glow orbs */
+  .orb {
+    position:absolute; border-radius:50%; filter:blur(80px); pointer-events:none;
+    animation: float 8s ease-in-out infinite;
+  }
+  .orb-1 { width:300px;height:300px; background:rgba(0,229,255,0.08); top:-80px;right:10%; }
+  .orb-2 { width:400px;height:400px; background:rgba(124,58,237,0.06); bottom:0;left:5%; animation-delay:-4s; }
+  @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-20px)} }
+
+  /* Role cards */
+  .roles-section { padding:4rem 4rem 6rem; position:relative; z-index:2; animation: fadeInUp 1s ease 1s both; }
+  .roles-section h2 {
+    font-family:var(--font-head); font-size:1.3rem; font-weight:700;
+    color:#fff; letter-spacing:0.15em; text-align:center;
+    margin-bottom:3rem; text-transform:uppercase;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+  }
+  .role-cards {
+    display:flex; gap:2rem; justify-content:center; flex-wrap:wrap;
+  }
+  .role-card {
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 20px;
+    padding: 2.5rem 2rem;
+    cursor:pointer; transition:all 0.4s ease; text-align:center;
+    min-width:180px;
+    position: relative;
+    overflow: hidden;
+  }
+  .role-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.5s;
+  }
+  .role-card:hover::before {
+    left: 100%;
+  }
+  .role-card:hover {
+    transform: translateY(-10px) scale(1.05);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+    background: rgba(255,255,255,0.25);
+  }
+  .role-card .icon { font-size:3rem; margin-bottom:1rem; display:block; filter: drop-shadow(0 2px 10px rgba(0,0,0,0.3)); }
+  .role-card .label { font-family:var(--font-head); font-weight:800; font-size:1rem; letter-spacing:0.05em; color:#fff; margin-bottom:0.5rem; text-shadow: 0 2px 10px rgba(0,0,0,0.3); }
+  .role-card .sub { font-size:0.85rem; color:rgba(255,255,255,0.8); font-weight:400; }
+
+  /* Stats bar */
+  .stats-bar {
+    display:flex; justify-content:center; gap:4rem; flex-wrap:wrap;
+    padding:3rem 4rem; position:relative; z-index:2;
+    animation: fadeInUp 1s ease 0.8s both;
+  }
+  .stat {
+    text-align:center;
+    padding: 2rem;
+    background: rgba(255,255,255,0.1);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    border: 1px solid rgba(255,255,255,0.2);
+    min-width: 150px;
+    transition: transform 0.3s ease;
+  }
+  .stat:hover {
+    transform: translateY(-5px);
+  }
+  .stat .num { font-family:var(--font-head); font-size:3rem; font-weight:900; color:#fff; margin-bottom:0.5rem; text-shadow: 0 2px 10px rgba(0,0,0,0.3); }
+  .stat .lbl { font-size:0.9rem; color:rgba(255,255,255,0.9); font-weight:500; letter-spacing:0.5px; }
+
+  /* ===== LOGIN MODAL ===== */
+  .modal-overlay {
+    display:none; position:fixed; inset:0; z-index:1000;
+    background:rgba(0,0,0,0.5); backdrop-filter:blur(6px);
+    align-items:center; justify-content:center;
+  }
+  body.auth-page .modal-overlay.active {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9eef8 100%);
+    backdrop-filter: none;
+  }
+  .modal-overlay.active { display:flex; }
+  .modal {
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:16px; padding:2.5rem; width:100%; max-width:550px;
+    max-height:90vh; overflow-y:auto; box-shadow:var(--shadow); position:relative;
+    animation: slideUp 0.3s ease;
+  }
+  @keyframes slideUp { from{transform:translateY(30px);opacity:0} to{transform:translateY(0);opacity:1} }
+  .modal-close {
+    position:absolute; top:1rem; right:1rem;
+    background:none; border:none; color:var(--text-muted);
+    font-size:1.3rem; cursor:pointer; line-height:1;
+  }
+  .modal h2 { font-family:var(--font-head); font-size:1.5rem; font-weight:800; margin-bottom:0.3rem; }
+  .modal p { font-size:0.85rem; color:var(--text-muted); margin-bottom:1.8rem; }
+  .form-group { margin-bottom:1.2rem; }
+  .form-group label { display:block; font-size:0.8rem; font-weight:500; color:var(--text-muted); margin-bottom:0.4rem; text-transform:uppercase; letter-spacing:0.06em; }
+  .form-group input, .form-group select, .form-group textarea {
+    width:100%; padding:0.75rem 1rem;
+    background:var(--primary); border:1px solid var(--border);
+    border-radius:8px; color:var(--text); font-family:var(--font-body); font-size:0.95rem;
+    outline:none; transition:border-color 0.2s; resize:vertical;
+  }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color:var(--accent); }
+  .form-group select option { background:var(--primary); }
+  .btn-block { width:100%; padding:0.85rem; font-size:1rem; margin-top:0.5rem; border-radius:8px; }
+  .demo-creds {
+    margin-top:1.2rem; padding:1rem; background:rgba(0,229,255,0.05);
+    border:1px solid var(--border); border-radius:8px; font-size:0.8rem;
+    color:var(--text-muted);
+  }
+  .demo-creds strong { color:var(--accent); }
+  .error-msg { color:var(--danger); font-size:0.85rem; margin-top:0.5rem; display:none; }
+  .loading { opacity:0.6; pointer-events:none; }
+  .modal-tabs { display:flex; margin-bottom:1.5rem; border-bottom:1px solid var(--border); }
+  .tab-btn { flex:1; background:none; border:none; padding:0.5rem 1rem; color:var(--text-muted); cursor:pointer; font-size:0.9rem; font-weight:500; transition:color 0.2s; }
+  .tab-btn.active { color:var(--accent); border-bottom:2px solid var(--accent); }
+  .auth-form { display:none; }
+  .auth-form.active { display:block; }
+  @keyframes slideIn { from{transform:translateX(100%)} to{transform:translateX(0)} }
+  @keyframes slideOut { from{transform:translateX(0)} to{transform:translateX(100%)} }
+
+  @media (max-width: 768px) {
+    nav,
+    .stats-bar,
+    .roles-section {
+      padding-left: 1.25rem;
+      padding-right: 1.25rem;
+    }
+    nav {
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .hero {
+      padding: 3rem 1.25rem 2rem;
+    }
+    .hero p {
+      font-size: 1rem;
+    }
+    .hero-actions,
+    .nav-actions,
+    .role-cards,
+    .stats-bar {
+      gap: 1rem;
+    }
+    .btn {
+      width: 100%;
+      text-align: center;
+    }
+    .stat,
+    .role-card {
+      width: 100%;
+      min-width: 0;
+    }
+    .modal {
+      max-width: calc(100vw - 2rem);
+      padding: 1.5rem;
+    }
+  }
+</style>
+</head>
+<body>
+
+<!-- Auth Modal -->
+<div class="modal-overlay" id="authModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div class="modal-tabs">
+      <button class="tab-btn active" onclick="switchTab('login')">Sign In</button>
+      <button class="tab-btn" onclick="switchTab('signup')">Sign Up</button>
+    </div>
+    
+    <!-- Login Form -->
+    <div id="loginForm" class="auth-form active">
+      <h2>Welcome Back</h2>
+      <p>Sign in to access your CRAMBRUNCH dashboard</p>
+      <div class="form-group">
+        <label>Email Address</label>
+        <input type="email" id="loginEmail" placeholder="your@email.com"/>
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="loginPassword" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"/>
+      </div>
+      <div class="form-group">
+        <a href="#" onclick="showForgotPassword()" style="color:var(--accent);font-size:0.85rem;">Forgot Password?</a>
+      </div>
+      <div class="error-msg" id="loginError"></div>
+      <button class="btn btn-primary btn-block" onclick="doLogin()" id="loginBtn">Sign In</button>
+    </div>
+    
+    <!-- Signup Form -->
+    <div id="signupForm" class="auth-form">
+      <h2>Student Registration</h2>
+      <p>Register, verify your email, and wait for HOD approval</p>
+      <div class="form-group">
+        <label>Full Name *</label>
+        <input type="text" id="signupName" placeholder="Your full name"/>
+      </div>
+      <div class="form-group">
+        <label>Email Address *</label>
+        <input type="email" id="signupEmail" placeholder="your@email.com"/>
+      </div>
+      <div class="form-group">
+        <label>Password *</label>
+        <input type="password" id="signupPassword" placeholder="••••••••"/>
+      </div>
+      <div class="form-group">
+        <label>Roll Number *</label>
+        <input type="text" id="signupRollNumber" placeholder="Your roll number"/>
+      </div>
+      <div class="form-group">
+        <label>Department *</label>
+        <select id="signupDepartment">
+          <option value="">Select Department...</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Semester *</label>
+        <input type="number" id="signupSemester" placeholder="Current semester"/>
+      </div>
+      <div class="form-group">
+        <label>Phone Number *</label>
+        <input type="tel" id="signupPhone" placeholder="Your phone number"/>
+      </div>
+      <div class="form-group">
+        <label>Parent Name *</label>
+        <input type="text" id="signupParentName" placeholder="Parent's full name"/>
+      </div>
+      <div class="form-group">
+        <label>Parent Email *</label>
+        <input type="email" id="signupParentEmail" placeholder="Parent's email address"/>
+      </div>
+      <div class="form-group">
+        <label>Address *</label>
+        <textarea id="signupAddress" placeholder="Your complete address" rows="3"></textarea>
+      </div>
+      <div class="form-group">
+        <label>Date of Birth *</label>
+        <input type="date" id="signupDateOfBirth"/>
+      </div>
+      <div class="error-msg" id="signupError"></div>
+      <button class="btn btn-primary btn-block" onclick="doSignup()" id="signupBtn">Submit for Approval</button>
+      <p style="font-size:0.9rem; color:#666; margin-top:1rem; text-align:center;">
+        After email verification, your registration will be reviewed by the HOD.
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- OTP Modal -->
+<div class="modal-overlay" id="otpModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <h2>Verify Your Email</h2>
+    <p>Enter the 6-digit OTP sent to your email</p>
+    <div class="form-group">
+      <label>OTP Code</label>
+      <input type="text" id="otpCode" placeholder="123456" maxlength="6"/>
+    </div>
+    <div class="error-msg" id="otpError"></div>
+    <button class="btn btn-primary btn-block" onclick="verifyOTP()" id="otpBtn">Verify</button>
+    <p style="text-align:center;margin-top:1rem;"><a href="#" onclick="resendOTP()" style="color:var(--accent);">Resend OTP</a></p>
+  </div>
+</div>
+
+<!-- Forgot Password Modal -->
+<div class="modal-overlay" id="forgotModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <h2>Reset Password</h2>
+    <p>Enter your email to receive reset OTP</p>
+    <div class="form-group">
+      <label>Email Address</label>
+      <input type="email" id="forgotEmail" placeholder="your@email.com"/>
+    </div>
+    <div class="error-msg" id="forgotError"></div>
+    <button class="btn btn-primary btn-block" onclick="sendResetOTP()" id="forgotBtn">Send Reset Code</button>
+  </div>
+</div>
+
+<!-- Reset Password Modal -->
+<div class="modal-overlay" id="resetModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <h2>Reset Password</h2>
+    <p>Enter the OTP and your new password</p>
+    <div class="form-group">
+      <label>OTP Code</label>
+      <input type="text" id="resetOTP" placeholder="123456" maxlength="6"/>
+    </div>
+    <div class="form-group">
+      <label>New Password</label>
+      <input type="password" id="resetPassword" placeholder="••••••••"/>
+    </div>
+    <div class="error-msg" id="resetError"></div>
+    <button class="btn btn-primary btn-block" onclick="resetPassword()" id="resetBtn">Reset Password</button>
+  </div>
+</div>
+
+<!-- Super Admin 2FA Modal -->
+<div class="modal-overlay" id="admin2faModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <h2>🔐 Two-Factor Authentication</h2>
+    <p>Enter the 6-digit code sent to your email</p>
+    <div class="form-group">
+      <label>2FA OTP Code</label>
+      <input type="text" id="admin2faCode" placeholder="123456" maxlength="6"/>
+    </div>
+    <div class="error-msg" id="admin2faError"></div>
+    <button class="btn btn-primary btn-block" onclick="verify2FA()" id="admin2faBtn">Verify & Login</button>
+  </div>
+</div>
+
+<!-- Initial Super Admin Setup Modal -->
+<div class="modal-overlay" id="setupAdminModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <h2>Initialize Super Admin</h2>
+    <p>Create the first Super Admin account. This can only be done once.</p>
+    <div class="form-group">
+      <label>Full Name</label>
+      <input type="text" id="setupAdminName" placeholder="Official admin name"/>
+    </div>
+    <div class="form-group">
+      <label>Email Address</label>
+      <input type="email" id="setupAdminEmail" placeholder="admin@crambrunch.com"/>
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="setupAdminPassword" placeholder="Strong password"/>
+    </div>
+    <div class="form-group">
+      <label>Department</label>
+      <input type="text" id="setupAdminDepartment" placeholder="Administration"/>
+    </div>
+    <div class="form-group">
+      <label>Phone</label>
+      <input type="tel" id="setupAdminPhone" placeholder="Contact number"/>
+    </div>
+    <div class="error-msg" id="setupAdminError"></div>
+    <button class="btn btn-primary btn-block" onclick="initializeSuperAdmin()" id="setupAdminCreateBtn">Create Super Admin</button>
+  </div>
+</div>
+
+<script>
+const API = '/api';
+let pendingVerificationEmail = '';
+
+window.addEventListener('DOMContentLoaded', async () => {
+  try {
+    const res = await fetch(`${API}/departments/public`);
+    const data = await res.json();
+    if (data.success && data.data) {
+      const select = document.getElementById('signupDepartment');
+      if (select) {
+        select.innerHTML = '<option value="">Select Department...</option>' + 
+          data.data.map(d => `<option value="${d.name}">${d.name}</option>`).join('');
+      }
+    }
+  } catch (e) {
+    console.log('Failed to load departments');
+  }
+
+  const mode = new URLSearchParams(window.location.search).get('mode');
+  const authMode = mode === 'signup' ? 'signup' : 'login';
+  document.body.classList.add('auth-page');
+  openModal(authMode);
+});
+
+function openModal(type = 'login', role = '') {
+  if (type === 'admin2fa') {
+    document.getElementById('admin2faModal').classList.add('active');
+  } else if (type === 'setupAdmin') {
+    document.getElementById('setupAdminModal').classList.add('active');
+  } else {
+    document.getElementById('authModal').classList.add('active');
+    switchTab(type);
+  }
+}
+function closeModal() { 
+  if (document.body.classList.contains('auth-page')) {
+    window.location.href = '/';
+    return;
+  }
+  hideModals();
+}
+
+function hideModals() {
+  document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('active'));
+}
+
+function switchTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+  document.querySelectorAll('.auth-form').forEach(form => form.classList.remove('active'));
+  document.querySelector(`[onclick="switchTab('${tab}')"]`).classList.add('active');
+  document.getElementById(`${tab}Form`).classList.add('active');
+}
+
+async function doLogin() {
+  const email = document.getElementById('loginEmail').value;
+  const password = document.getElementById('loginPassword').value;
+  const btn = document.getElementById('loginBtn');
+  const err = document.getElementById('loginError');
+  err.style.display = 'none';
+  btn.textContent = 'Signing in…'; btn.classList.add('loading');
+  try {
+    const res = await fetch(`${API}/auth/login`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ email, password })
+    });
+    const data = await res.json();
+    if (data.success && data.requiresAdmin2FA) {
+      // Super Admin requires 2FA verification
+      localStorage.setItem('admin2faUserId', data.userId);
+      hideModals();
+      openModal('admin2fa');
+      showToast('2FA OTP sent to your email', 'info');
+    } else if (data.success) {
+      localStorage.setItem('cb_token', data.token);
+      localStorage.setItem('cb_user', JSON.stringify(data.user));
+      const routes = {
+        super_admin: '/pages/admin.html',
+        hod: '/pages/hod.html',
+        teacher: '/pages/teacher.html',
+        student: '/pages/student.html',
+        parent: '/pages/parent.html',
+        librarian: '/pages/librarian.html'
+      };
+      window.location.href = routes[data.user.role] || '/pages/student.html';
+    } else {
+      err.textContent = data.message; err.style.display = 'block';
+    }
+  } catch(e) {
+    err.textContent = 'Server error. Is the backend running?'; err.style.display = 'block';
+  }
+  btn.textContent = 'Sign In'; btn.classList.remove('loading');
+}
+
+async function initializeSuperAdmin() {
+  const name = document.getElementById('setupAdminName').value.trim();
+  const email = document.getElementById('setupAdminEmail').value.trim();
+  const password = document.getElementById('setupAdminPassword').value;
+  const department = document.getElementById('setupAdminDepartment').value.trim();
+  const phone = document.getElementById('setupAdminPhone').value.trim();
+  const btn = document.getElementById('setupAdminCreateBtn');
+  const err = document.getElementById('setupAdminError');
+
+  err.style.display = 'none';
+  if (!name || !email || !password) {
+    err.textContent = 'Name, email, and password are required';
+    err.style.display = 'block';
+    return;
+  }
+
+  btn.textContent = 'Creating...';
+  btn.classList.add('loading');
+
+  try {
+    const res = await fetch(`${API}/auth/initialize-super-admin`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, email, password, department, phone })
+    });
+    const data = await res.json();
+
+    if (data.success) {
+      hideModals();
+      document.getElementById('setupAdminBtn').style.display = 'none';
+      showToast('Super Admin created. Sign in to continue.', 'success');
+      openModal('login');
+      document.getElementById('loginEmail').value = email;
+    } else {
+      err.textContent = data.message;
+      err.style.display = 'block';
+    }
+  } catch (e) {
+    err.textContent = 'Server error';
+    err.style.display = 'block';
+  }
+
+  btn.textContent = 'Create Super Admin';
+  btn.classList.remove('loading');
+}
+
+async function doSignup() {
+  const name = document.getElementById('signupName').value;
+  const email = document.getElementById('signupEmail').value;
+  const password = document.getElementById('signupPassword').value;
+  const rollNumber = document.getElementById('signupRollNumber').value;
+  const department = document.getElementById('signupDepartment').value;
+  const semester = document.getElementById('signupSemester').value;
+  const phone = document.getElementById('signupPhone').value;
+  const parentName = document.getElementById('signupParentName').value;
+  const parentEmail = document.getElementById('signupParentEmail').value;
+  const address = document.getElementById('signupAddress').value;
+  const dateOfBirth = document.getElementById('signupDateOfBirth').value;
+
+  const btn = document.getElementById('signupBtn');
+  const err = document.getElementById('signupError');
+  err.style.display = 'none';
+
+  // Validate required fields
+  if (!name || !email || !password || !rollNumber || !department || !semester || !phone || !parentName || !parentEmail || !address || !dateOfBirth) {
+    err.textContent = 'Please fill all required fields'; err.style.display = 'block'; return;
+  }
+
+  btn.textContent = 'Submitting…'; btn.classList.add('loading');
+
+  const body = {
+    name, email, password, rollNumber, department,
+    semester: parseInt(semester), phone, parentName, parentEmail, address, dateOfBirth
+  };
+
+  try {
+    const res = await fetch(`${API}/auth/register-student`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(body)
+    });
+    const data = await res.json();
+    if (data.success) {
+      pendingVerificationEmail = email;
+      hideModals();
+      document.getElementById('otpModal').classList.add('active');
+      document.getElementById('otpCode').value = '';
+      document.getElementById('otpCode').focus();
+      showToast('Registration submitted! Check your email for OTP verification.', 'success');
+    } else {
+      err.textContent = data.message; err.style.display = 'block';
+    }
+  } catch(e) {
+    err.textContent = 'Server error'; err.style.display = 'block';
+  }
+  btn.textContent = 'Submit for Approval'; btn.classList.remove('loading');
+}
+
+async function verifyOTP() {
+  const otp = document.getElementById('otpCode').value;
+  const email = pendingVerificationEmail || document.getElementById('signupEmail').value;
+  const btn = document.getElementById('otpBtn');
+  const err = document.getElementById('otpError');
+  err.style.display = 'none';
+  if (!otp) { err.textContent = 'Please enter OTP'; err.style.display = 'block'; return; }
+  btn.textContent = 'Verifying…'; btn.classList.add('loading');
+  try {
+    const res = await fetch(`${API}/auth/verify-otp`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ email, otp })
+    });
+    const data = await res.json();
+    if (data.success) {
+      if (data.requiresApproval) {
+        hideModals();
+        showToast(data.message || 'Email verified. Please wait for HOD approval.', 'success');
+        openModal('login');
+        document.getElementById('loginEmail').value = email;
+      } else {
+        localStorage.setItem('cb_token', data.token);
+        localStorage.setItem('cb_user', JSON.stringify(data.user));
+        const routes = {
+          super_admin: '/pages/admin.html',
+          hod: '/pages/hod.html',
+          teacher: '/pages/teacher.html',
+          student: '/pages/student.html',
+          parent: '/pages/parent.html'
+        };
+        window.location.href = routes[data.user.role] || '/pages/student.html';
+      }
+    } else {
+      err.textContent = data.message; err.style.display = 'block';
+    }
+  } catch(e) {
+    err.textContent = 'Server error'; err.style.display = 'block';
+  }
+  btn.textContent = 'Verify'; btn.classList.remove('loading');
+}
+
+function showForgotPassword() {
+  hideModals();
+  document.getElementById('forgotModal').classList.add('active');
+}
+
+async function sendResetOTP() {
+  const email = document.getElementById('forgotEmail').value;
+  const btn = document.getElementById('forgotBtn');
+  const err = document.getElementById('forgotError');
+  err.style.display = 'none';
+  if (!email) { err.textContent = 'Please enter email'; err.style.display = 'block'; return; }
+  btn.textContent = 'Sending…'; btn.classList.add('loading');
+  try {
+    const res = await fetch(`${API}/auth/forgot-password`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ email })
+    });
+    const data = await res.json();
+    if (data.success) {
+      hideModals();
+      document.getElementById('resetModal').classList.add('active');
+      document.getElementById('resetOTP').focus();
+    } else {
+      err.textContent = data.message; err.style.display = 'block';
+    }
+  } catch(e) {
+    err.textContent = 'Server error'; err.style.display = 'block';
+  }
+  btn.textContent = 'Send Reset Code'; btn.classList.remove('loading');
+}
+
+async function resetPassword() {
+  const otp = document.getElementById('resetOTP').value;
+  const password = document.getElementById('resetPassword').value;
+  const email = document.getElementById('forgotEmail').value;
+  const btn = document.getElementById('resetBtn');
+  const err = document.getElementById('resetError');
+  err.style.display = 'none';
+  if (!otp || !password) { err.textContent = 'Please fill all fields'; err.style.display = 'block'; return; }
+  btn.textContent = 'Resetting…'; btn.classList.add('loading');
+  try {
+    const res = await fetch(`${API}/auth/reset-password`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ email, otp, newPassword: password })
+    });
+    const data = await res.json();
+    if (data.success) {
+      hideModals();
+      showToast('Password reset successful! Please sign in.', 'success');
+      openModal('login');
+    } else {
+      err.textContent = data.message; err.style.display = 'block';
+    }
+  } catch(e) {
+    err.textContent = 'Server error'; err.style.display = 'block';
+  }
+  btn.textContent = 'Reset Password'; btn.classList.remove('loading');
+}
+
+async function verify2FA() {
+  const userId = localStorage.getItem('admin2faUserId');
+  const otp = document.getElementById('admin2faCode').value;
+  const btn = document.getElementById('admin2faBtn');
+  const err = document.getElementById('admin2faError');
+  err.style.display = 'none';
+  if (!otp) { err.textContent = 'Please enter the OTP code'; err.style.display = 'block'; return; }
+  btn.textContent = 'Verifying…'; btn.classList.add('loading');
+  try {
+    const res = await fetch(`${API}/auth/verify-2fa`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ userId, otp })
+    });
+    const data = await res.json();
+    if (data.success) {
+      localStorage.setItem('cb_token', data.token);
+      localStorage.setItem('cb_user', JSON.stringify(data.user));
+      localStorage.removeItem('admin2faUserId');
+      showToast('2FA verified! Welcome Super Admin!', 'success');
+      setTimeout(() => {
+        window.location.href = '/pages/admin.html';
+      }, 1000);
+    } else {
+      err.textContent = data.message; err.style.display = 'block';
+    }
+  } catch(e) {
+    err.textContent = 'Server error'; err.style.display = 'block';
+  }
+  btn.textContent = 'Verify & Login'; btn.classList.remove('loading');
+}
+
+async function resendOTP() {
+  const email = pendingVerificationEmail || document.getElementById('signupEmail').value;
+  if (!email) return;
+  try {
+    const res = await fetch(`${API}/auth/resend-verification-otp`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ email })
+    });
+    const data = await res.json();
+    if (data.success) {
+      showToast('OTP resent to your email', 'success');
+    }
+  } catch(e) {}
+}
+
+function showToast(msg, type = 'success') {
+  const toast = document.createElement('div');
+  toast.style.cssText = `
+    position: fixed; top: 20px; right: 20px; background: ${type === 'success' ? '#00c896' : '#ef4444'};
+    color: white; padding: 1rem 1.5rem; border-radius: 8px; z-index: 10000; font-size: 0.9rem;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3); animation: slideIn 0.3s ease;
+  `;
+  toast.textContent = msg;
+  document.body.appendChild(toast);
+  setTimeout(() => { toast.style.animation = 'slideOut 0.3s ease'; setTimeout(() => toast.remove(), 300); }, 3000);
+}
+
+async function loadSetupStatus() {
+  try {
+    const res = await fetch(`${API}/auth/setup-status`);
+    const data = await res.json();
+    if (!data.success) return;
+
+    const setupBtn = document.getElementById('setupAdminBtn');
+    if (setupBtn) {
+      setupBtn.style.display = data.hasSuperAdmin ? 'none' : 'inline-block';
+    }
+  } catch (e) {}
+}
+
+// Check if already logged in
+const token = localStorage.getItem('cb_token');
+const user = localStorage.getItem('cb_user');
+loadSetupStatus();
+if (token && user) {
+  const u = JSON.parse(user);
+  const routes = { super_admin:'/pages/admin.html', hod:'/pages/hod.html', teacher:'/pages/teacher.html', student:'/pages/student.html', parent:'/pages/parent.html' };
+  // Don't auto-redirect, let user choose
+}
+</script>
+</body>
+</html>

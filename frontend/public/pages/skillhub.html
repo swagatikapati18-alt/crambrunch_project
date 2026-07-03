@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>SkillHub — CRAMBRUNCH</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="../css/main.css"/>
+<style>
+.skill-barter-card{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:1.25rem;transition:transform .2s,box-shadow .2s}
+.skill-barter-card:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,.2)}
+.trade-arrow{font-size:1.5rem;color:var(--accent);text-align:center;margin:.5rem 0}
+.badge-card{background:linear-gradient(135deg,var(--surface2),var(--surface));border:1px solid var(--border);border-radius:12px;padding:1.25rem;text-align:center}
+.badge-icon{font-size:2.5rem;margin-bottom:.5rem}
+.stat-pill{display:inline-flex;align-items:center;gap:.4rem;padding:.35rem .85rem;background:rgba(0,229,255,.08);border:1px solid rgba(0,229,255,.2);border-radius:20px;font-size:.8rem;font-weight:600}
+.intern-card{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:1.25rem;display:flex;flex-direction:column;gap:.75rem}
+.skill-tag-sm{background:rgba(0,229,255,.1);color:var(--accent);border-radius:4px;padding:.2rem .5rem;font-size:.72rem;font-weight:600}
+.tabs{display:flex;gap:.25rem;background:var(--surface2);padding:.3rem;border-radius:10px;margin-bottom:1.5rem}
+.tab{flex:1;padding:.5rem;text-align:center;border:none;background:none;color:var(--text-muted);font-size:.85rem;font-weight:600;cursor:pointer;border-radius:8px;transition:all .2s}
+.tab.active{background:var(--accent);color:#fff}
+.search-bar{display:flex;gap:.75rem;margin-bottom:1.25rem}
+.search-bar input{flex:1;padding:.6rem 1rem;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:.875rem}
+</style>
+</head>
+<body>
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <img src="../assets/logo.jpg" alt="Logo" style="height:40px;width:auto;margin-right:10px;border-radius:8px;"/>
+    <span>SkillHub</span>
+  </div>
+  <div class="sidebar-user">
+    <div class="user-avatar">SK</div>
+    <div class="user-info"><div class="name user-name">Student</div><div class="role-badge" style="background:rgba(0,229,255,.1);color:var(--accent)">SkillHub</div></div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section">
+      <div class="nav-section-title">Explore</div>
+      <a class="nav-item active" onclick="showTab('barter')"><span class="icon">🔄</span><span class="label">Skill Barter</span></a>
+      <a class="nav-item" onclick="showTab('internship')"><span class="icon">🎓</span><span class="label">Internships</span></a>
+      <a class="nav-item" onclick="showTab('badges')"><span class="icon">🏅</span><span class="label">Achievements</span></a>
+    </div>
+  </nav>
+  <div class="sidebar-bottom">
+    <a href="student.html" class="logout-btn" style="text-decoration:none;display:block;text-align:center">← Back to Dashboard</a>
+  </div>
+</aside>
+
+<div class="notif-panel">
+  <div class="notif-panel-header"><h3>🔔 Notifications</h3><button class="btn btn-xs btn-danger" onclick="toggleNotifPanel()">✕</button></div>
+  <div class="notif-list"></div>
+</div>
+
+<main class="main">
+  <div class="topbar">
+    <div class="page-title" id="page-title">⚡ Skill Barter Directory</div>
+    <div class="topbar-actions">
+      <button class="notif-btn" onclick="toggleNotifPanel()">🔔 <span class="notif-dot" style="display:none">0</span></button>
+    </div>
+  </div>
+  <div class="content">
+    <!-- BARTER TAB -->
+    <div id="tab-barter">
+      <div class="search-bar">
+        <input id="barter-search" placeholder="Search skill (e.g. Python, UI Design)..." oninput="filterBarter()"/>
+        <button class="btn btn-primary" onclick="openModal('post-barter-modal')">➕ Post Skill Swap</button>
+      </div>
+      
+      <div id="my-swaps-section" style="margin-bottom:2rem; display:none">
+        <h4 style="margin-bottom:1rem">📋 My Active Swaps</h4>
+        <div id="my-swaps-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem"></div>
+      </div>
+
+      <h4 style="margin-bottom:1rem">⚡ Available Peer Swaps</h4>
+      <div id="barter-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem"></div>
+    </div>
+
+    <!-- INTERNSHIP TAB -->
+    <div id="tab-internship" style="display:none">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.25rem;flex-wrap:wrap;gap:.75rem">
+        <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+          <select id="intern-filter" onchange="loadInternships()" class="btn btn-secondary btn-sm">
+            <option value="">All Status</option>
+            <option value="open">Open</option>
+            <option value="in_progress">In Progress</option>
+            <option value="completed">Completed</option>
+          </select>
+        </div>
+        <button class="btn btn-primary btn-sm" onclick="loadInternships()">🔄 Refresh</button>
+      </div>
+      <div id="intern-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:1rem"></div>
+    </div>
+
+    <!-- BADGES TAB -->
+    <div id="tab-badges" style="display:none">
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1rem" id="badges-grid">
+        <div class="empty-state"><div class="icon">🏅</div><p>Loading badges...</p></div>
+      </div>
+      <div class="card" style="margin-top:1.5rem">
+        <div class="card-header"><h3>🏆 Badge Leaderboard</h3></div>
+        <div class="card-body">
+          <div id="leaderboard-list"></div>
+        </div>
+      </div>
+    </div>
+
+    </div>
+
+  </div>
+</main>
+
+<!-- Post Skill Swap Modal -->
+<div class="modal-backdrop" id="post-barter-modal">
+  <div class="modal-box">
+    <button class="modal-close-btn" onclick="closeModal('post-barter-modal')">✕</button>
+    <h3>🔄 Post a Skill Swap</h3>
+    <p style="color:var(--text-muted);font-size:.85rem;margin-bottom:1.25rem">Offer a skill you have, ask for one you want</p>
+    <div class="form-group"><label>I can teach / offer</label><input id="bs-offer" placeholder="e.g. Python basics, Excel, Guitar"/></div>
+    <div style="text-align:center;font-size:1.5rem;margin:.5rem 0">⇅</div>
+    <div class="form-group"><label>I want to learn</label><input id="bs-want" placeholder="e.g. UI Design, Public Speaking"/></div>
+    <div class="form-group"><label>Brief Description</label><textarea id="bs-desc" rows="3" placeholder="Tell peers what you're offering and what you're looking for..."></textarea></div>
+    <button class="btn btn-primary" onclick="postBarterSkill()">Post Swap Request</button>
+  </div>
+</div>
+
+<!-- Apply Internship Modal -->
+<div class="modal-backdrop" id="apply-intern-modal">
+  <div class="modal-box">
+    <button class="modal-close-btn" onclick="closeModal('apply-intern-modal')">✕</button>
+    <h3>🎓 Apply for Micro-Internship</h3>
+    <input type="hidden" id="apply-intern-id"/>
+    <div class="form-group"><label>Why do you want this internship?</label><textarea id="apply-statement" rows="4" placeholder="Write a short statement (2-3 sentences)..."></textarea></div>
+    <button class="btn btn-primary" onclick="applyInternship()">Submit Application</button>
+  </div>
+</div>
+
+<script src="../js/app.js"></script>
+<script>
+const TITLES = { barter:'⚡ Skill Barter Directory', internship:'🎓 Internship Board', badges:'🏅 My Achievements' };
+let allBarterTasks = [];
+
+function showTab(tab) {
+  ['barter','internship','badges'].forEach(t => {
+    const el = document.getElementById('tab-'+t);
+    if(el) el.style.display = t===tab?'block':'none';
+    document.querySelectorAll('.nav-item').forEach((item,i) => { 
+      if(i===['barter','internship','badges'].indexOf(t)) {
+        if(t===tab) item.classList.add('active'); else item.classList.remove('active');
+      }
+    });
+  });
+  document.getElementById('page-title').textContent = TITLES[tab];
+  if(tab==='barter') loadBarter();
+  if(tab==='internship') loadInternships();
+  if(tab==='badges') { loadBadges(); loadLeaderboard(); }
+}
+
+async function loadBarter() {
+  const data = await apiFetch('/skillhub?type=skill_swap');
+  if(!data.success) return;
+  allBarterTasks = data.data || [];
+  renderBarter(allBarterTasks);
+  
+  const recent = document.getElementById('dash-recent-swaps');
+  if(recent) {
+    recent.innerHTML = allBarterTasks.slice(0,3).map(t => renderBarterCard(t, t.postedBy?._id===user.id)).join('');
+    if(!allBarterTasks.length) recent.innerHTML = '<p style="color:var(--text-muted)">No recent swaps found.</p>';
+  }
+}
+
+function renderBarter(tasks) {
+  const g = document.getElementById('barter-grid');
+  const myG = document.getElementById('my-swaps-grid');
+  const mySection = document.getElementById('my-swaps-section');
+  
+  const myTasks = tasks.filter(t => t.postedBy?._id === user.id || t.postedBy === user.id);
+  const otherTasks = tasks.filter(t => t.postedBy?._id !== user.id && t.postedBy !== user.id);
+
+  if (myTasks.length > 0) {
+    mySection.style.display = 'block';
+    myG.innerHTML = myTasks.map(t => renderBarterCard(t, true)).join('');
+  } else {
+    mySection.style.display = 'none';
+  }
+
+  if(!otherTasks.length) { 
+    g.innerHTML='<div class="empty-state" style="grid-column:1/-1"><div class="icon">🔄</div><p>No other peer swaps posted yet. Be the first!</p></div>'; 
+    return; 
+  }
+  g.innerHTML = otherTasks.map(t => renderBarterCard(t, false)).join('');
+}
+
+function renderBarterCard(t, isMine) {
+  const statusColors = {open:'badge-success',in_progress:'badge-warning',completed:'badge-info'};
+  return `
+    <div class="skill-barter-card">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div>
+          <div style="font-weight:700;font-size:.9rem">${isMine ? 'You' : (t.postedBy?.name||'Student')}</div>
+          <div style="font-size:.75rem;color:var(--text-muted)">${formatDate(t.createdAt)}</div>
+        </div>
+        <span class="badge ${statusColors[t.status]||'badge-info'}">${t.status.replace('_',' ')}</span>
+      </div>
+      <div style="margin:.75rem 0">
+        <div style="font-size:.8rem;color:var(--text-muted);margin-bottom:.2rem">OFFERING</div>
+        <div style="font-weight:600;color:var(--success)">${t.skillOffered||t.title}</div>
+      </div>
+      <div class="trade-arrow">⇅</div>
+      <div style="margin:.25rem 0 .75rem">
+        <div style="font-size:.8rem;color:var(--text-muted);margin-bottom:.2rem">WANTS</div>
+        <div style="font-weight:600;color:var(--accent)">${t.skillWanted||'—'}</div>
+      </div>
+      <p style="font-size:.82rem;color:var(--text-muted);margin-bottom:.75rem">${t.description||''}</p>
+      
+      ${isMine && t.status !== 'completed' ? `
+        <div style="display:flex; gap:.5rem; flex-direction:column">
+          <div style="font-size:.75rem; color:var(--text-muted); margin-bottom:.25rem">${t.applicants?.length||0} student(s) interested</div>
+          ${t.status === 'in_progress' ? 
+            `<button class="btn btn-success btn-sm" onclick="completeBarter('${t._id}')">✅ Confirm Completion & Award Badge</button>` :
+            `<div style="font-size:.7rem; color:var(--text-muted)">Wait for peers to propose a swap</div>`
+          }
+        </div>
+      ` : !isMine && t.status === 'open' ? `
+        <button class="btn btn-primary btn-sm" onclick="applyBarter('${t._id}')">🤝 Propose Swap</button>
+      ` : `<span style="font-size:.75rem;color:var(--text-muted)">${t.status === 'completed' ? '🎉 Transaction Finished' : t.applicants?.length + ' interest(s)'}</span>`}
+    </div>`;
+}
+
+async function completeBarter(id) {
+  if(!confirm("Verify this peer-learning session is finished? This will award a 'Peer Teacher' badge to the student who helped you.")) return;
+  const data = await apiFetch(`/skillhub/${id}/complete`, {method:'PUT'});
+  if(data.success){
+    showToast('Success! Badge awarded to your peer.');
+    loadBarter();
+  } else showToast(data.message,'error');
+}
+
+function filterBarter() {
+  const q = document.getElementById('barter-search').value.toLowerCase();
+  renderBarter(allBarterTasks.filter(t => (t.skillOffered+t.skillWanted+t.title+t.description||'').toLowerCase().includes(q)));
+}
+
+async function postBarterSkill() {
+  const body = { type:'skill_swap', title: document.getElementById('bs-offer').value+' ↔ '+document.getElementById('bs-want').value, skillOffered:document.getElementById('bs-offer').value, skillWanted:document.getElementById('bs-want').value, description:document.getElementById('bs-desc').value };
+  if(!body.skillOffered||!body.skillWanted) return showToast('Fill both fields','error');
+  const data = await apiFetch('/skillhub',{method:'POST',body:JSON.stringify(body)});
+  if(data.success){showToast('Skill swap posted!');closeModal('post-barter-modal');['bs-offer','bs-want','bs-desc'].forEach(id=>document.getElementById(id).value='');loadBarter();}
+  else showToast(data.message,'error');
+}
+
+async function applyBarter(id) {
+  const data = await apiFetch(`/skillhub/${id}/apply`,{method:'POST'});
+  if(data.success){showToast('Interest registered! The poster will contact you.');loadBarter();}
+  else showToast(data.message,'error');
+}
+
+async function loadInternships() {
+  const status = document.getElementById('intern-filter')?.value||'';
+  const data = await apiFetch('/micro-internship'+(status?'?status='+status:''));
+  const g = document.getElementById('intern-grid');
+  if(!data.success||!data.data?.length){g.innerHTML='<div class="empty-state" style="grid-column:1/-1"><div class="icon">🎓</div><p>No micro-internships available right now.</p></div>';return;}
+  g.innerHTML = data.data.map(t=>{
+    const applied = t.myApp;
+    const isCompleted = applied?.status==='completed';
+    const statusColors = {open:'badge-success',in_progress:'badge-warning',completed:'badge-info',cancelled:'badge-danger'};
+    return `<div class="intern-card">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div style="font-size:2rem">${t.badgeIcon||'🎓'}</div>
+        <span class="badge ${statusColors[t.status]||'badge-info'}">${t.status.replace('_',' ')}</span>
+      </div>
+      <div>
+        <div style="font-weight:700;font-size:1rem;margin-bottom:.2rem">${t.title}</div>
+        <div style="font-size:.8rem;color:var(--text-muted)">${t.postedBy?.name||'Faculty'} • ${t.department||''}</div>
+      </div>
+      <p style="font-size:.82rem;color:var(--text-muted)">${t.description?.substring(0,120)}${t.description?.length>120?'…':''}</p>
+      <div style="display:flex;flex-wrap:wrap;gap:.3rem">${(t.skills||[]).map(s=>`<span class="skill-tag-sm">${s}</span>`).join('')}</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;font-size:.8rem;color:var(--text-muted)">
+        <span>⏳ ${t.duration||'—'}</span>
+        <span>👥 ${t.appCount||0}/${t.maxApplicants||10} applied</span>
+      </div>
+      <div style="padding:.6rem;background:rgba(0,229,255,.06);border-radius:8px;font-size:.8rem">
+        🏅 Badge: <strong style="color:var(--accent)">${t.badgeName||'—'}</strong>
+      </div>
+      ${isCompleted?`<span class="badge badge-success" style="text-align:center">✅ Completed &amp; Badge Earned</span>`:
+        applied?`<span class="badge badge-warning" style="text-align:center">Applied — ${applied.status}</span>`:
+        t.status==='open'?`<button class="btn btn-primary btn-sm" onclick="openApplyModal('${t._id}')">Apply Now →</button>`:
+        `<span style="color:var(--text-muted);font-size:.8rem;text-align:center">Not accepting applications</span>`}
+    </div>`;
+  }).join('');
+}
+
+function openApplyModal(id) { document.getElementById('apply-intern-id').value=id; document.getElementById('apply-statement').value=''; openModal('apply-intern-modal'); }
+
+async function applyInternship() {
+  const id = document.getElementById('apply-intern-id').value;
+  const statement = document.getElementById('apply-statement').value;
+  if(!statement.trim()) return showToast('Please write a statement','error');
+  const data = await apiFetch(`/micro-internship/${id}/apply`,{method:'POST',body:JSON.stringify({statement})});
+  if(data.success){showToast('Application submitted!');closeModal('apply-intern-modal');loadInternships();}
+  else showToast(data.message,'error');
+}
+
+async function loadBadges() {
+  const [badgesRes, skRes] = await Promise.all([apiFetch('/micro-internship/badges/my'), apiFetch('/skillhub?status=completed')]);
+  const g = document.getElementById('badges-grid');
+  const mbadges = badgesRes.data||[];
+  const skBadges = (skRes.data||[]).filter(t=>t.badgeAwarded&&t.assignedTo&&(t.assignedTo._id===user.id||t.assignedTo===user.id));
+  const allB = [...mbadges.map(b=>({icon:b.icon||'🏅',color:b.color||'#0ea5e9',name:b.name,desc:b.description,date:b.awardedAt,by:b.awardedBy?.name})), ...skBadges.map(t=>({icon:'⚡',color:'#f59e0b',name:t.title,desc:'Skill Hub badge',date:t.updatedAt,by:'Peer'}))];
+  if(!allB.length){g.innerHTML='<div class="empty-state" style="grid-column:1/-1"><div class="icon">🏅</div><p>No badges yet. Complete internships or skill tasks to earn badges!</p></div>';return;}
+  g.innerHTML = allB.map(b=>`<div class="badge-card">
+    <div class="badge-icon">${b.icon}</div>
+    <div style="font-weight:700;margin-bottom:.25rem">${b.name}</div>
+    <div style="font-size:.75rem;color:var(--text-muted);margin-bottom:.5rem">${b.desc||''}</div>
+    <div style="font-size:.72rem;color:var(--text-muted)">Awarded by ${b.by||'Faculty'} • ${formatDate(b.date)}</div>
+    <div style="margin-top:.5rem;width:12px;height:12px;border-radius:50%;background:${b.color};margin:auto"></div>
+  </div>`).join('');
+}
+
+async function loadLeaderboard() {
+  const data = await apiFetch('/micro-internship/badges/leaderboard');
+  const el = document.getElementById('leaderboard-list');
+  if(!data.success||!data.data?.length){el.innerHTML='<div class="empty-state"><div class="icon">🏆</div><p>No data yet.</p></div>';return;}
+  el.innerHTML = `<table style="width:100%"><thead><tr><th>#</th><th>Student</th><th>Department</th><th>Badges</th></tr></thead><tbody>${data.data.map((r,i)=>`<tr><td><strong>${i+1}</strong></td><td>${r.student?.name||'—'}</td><td style="font-size:.8rem;color:var(--text-muted)">${r.student?.department||'—'}</td><td><span class="badge badge-warning">🏅 ${r.count}</span></td></tr>`).join('')}</tbody></table>`;
+}
+
+}
+
+const user = requireAuth(['student','teacher','hod','super_admin']);
+if (user) { 
+  initUserUI(user); 
+  loadNotifications(); 
+  showTab('barter'); 
+}
+</script>
+</body>
+</html>

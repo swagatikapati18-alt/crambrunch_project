@@ -1,0 +1,1144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Peer Exchange — CRAMBRUNCH</title>
+<meta name="description" content="CRAMBRUNCH Integrated Peer Exchange — barter your technical skills and knowledge with fellow students."/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="../css/main.css"/>
+<style>
+/* ── Peer Exchange Specific Styles ── */
+:root {
+  --pe-green:  #00c896;
+  --pe-purple: #7c3aed;
+  --pe-orange: #f97316;
+  --pe-blue:   #0ea5e9;
+  --pe-pink:   #ec4899;
+  --cat-prog:  #0ea5e9;
+  --cat-design: #ec4899;
+  --cat-math:  #f59e0b;
+  --cat-lang:  #10b981;
+  --cat-sci:   #6366f1;
+  --cat-music: #f97316;
+  --cat-write: #8b5cf6;
+  --cat-data:  #06b6d4;
+  --cat-hw:    #84cc16;
+  --cat-other: #94a3b8;
+}
+
+/* ── Layout ── */
+.pe-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 1.25rem;
+}
+@media (max-width: 1100px) { .pe-grid { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 720px)  { .pe-grid { grid-template-columns: 1fr; } }
+
+/* ── Listing Card ── */
+.listing-card {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 1.35rem;
+  display: flex;
+  flex-direction: column;
+  gap: .85rem;
+  transition: transform .2s, box-shadow .2s, border-color .2s;
+  cursor: default;
+  position: relative;
+  overflow: hidden;
+}
+.listing-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  border-radius: 16px 16px 0 0;
+}
+.listing-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 30px rgba(0,0,0,.35);
+  border-color: rgba(124,58,237,.4);
+}
+.lc-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: .75rem;
+}
+.lc-avatar {
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--pe-purple), var(--pe-blue));
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-head);
+  font-size: 1rem; font-weight: 700; color: #fff;
+  flex-shrink: 0;
+}
+.lc-user-info { flex: 1; }
+.lc-name { font-size: .9rem; font-weight: 600; }
+.lc-meta { font-size: .72rem; color: var(--text-muted); margin-top: .1rem; }
+.lc-views { font-size: .7rem; color: var(--text-muted); display: flex; align-items: center; gap: .25rem; }
+
+.trade-row {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: .5rem;
+  align-items: center;
+}
+.trade-side {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: .65rem .85rem;
+}
+.trade-side-label {
+  font-size: .65rem;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  margin-bottom: .25rem;
+}
+.trade-side-label.offers { color: var(--pe-green); }
+.trade-side-label.wants  { color: var(--pe-orange); }
+.trade-side-title { font-size: .85rem; font-weight: 600; }
+.trade-swap-icon {
+  font-size: 1.3rem;
+  opacity: .6;
+  text-align: center;
+}
+.lc-tags { display: flex; flex-wrap: wrap; gap: .4rem; }
+.lc-tag {
+  font-size: .68rem;
+  padding: .2rem .6rem;
+  border-radius: 99px;
+  background: rgba(124,58,237,.12);
+  color: var(--pe-purple);
+  border: 1px solid rgba(124,58,237,.25);
+}
+.lc-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .5rem;
+  margin-top: auto;
+}
+
+/* Category pill */
+.cat-pill {
+  font-size: .68rem;
+  padding: .2rem .65rem;
+  border-radius: 99px;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+.cat-programming { background: rgba(14,165,233,.15); color: var(--cat-prog); }
+.cat-design      { background: rgba(236,72,153,.15); color: var(--cat-design); }
+.cat-mathematics { background: rgba(245,158,11,.15); color: var(--cat-math); }
+.cat-language    { background: rgba(16,185,129,.15); color: var(--cat-lang); }
+.cat-science     { background: rgba(99,102,241,.15); color: var(--cat-sci); }
+.cat-music       { background: rgba(249,115,22,.15); color: var(--cat-music); }
+.cat-writing     { background: rgba(139,92,246,.15); color: var(--cat-write); }
+.cat-data_science{ background: rgba(6,182,212,.15); color: var(--cat-data); }
+.cat-hardware    { background: rgba(132,204,22,.15); color: var(--cat-hw); }
+.cat-other       { background: rgba(148,163,184,.15); color: var(--cat-other); }
+
+.level-pill {
+  font-size: .65rem;
+  padding: .15rem .55rem;
+  border-radius: 99px;
+  text-transform: capitalize;
+  font-weight: 600;
+}
+.level-beginner    { background: rgba(0,200,150,.12); color: var(--pe-green); }
+.level-intermediate{ background: rgba(245,158,11,.12); color: #f59e0b; }
+.level-advanced    { background: rgba(239,68,68,.12); color: #ef4444; }
+
+/* ── Stats Bar ── */
+.pe-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.75rem;
+}
+@media (max-width: 720px) { .pe-stats { grid-template-columns: 1fr 1fr; } }
+
+.pe-stat-card {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: .35rem;
+  transition: transform .2s;
+}
+.pe-stat-card:hover { transform: translateY(-2px); }
+.pe-stat-icon { font-size: 1.5rem; }
+.pe-stat-val  { font-family: var(--font-head); font-size: 1.75rem; font-weight: 800; }
+.pe-stat-lbl  { font-size: .75rem; color: var(--text-muted); }
+
+/* ── Tabs ── */
+.pe-tabs {
+  display: flex;
+  gap: .5rem;
+  background: var(--surface2);
+  padding: .35rem;
+  border-radius: 12px;
+  margin-bottom: 1.5rem;
+  width: fit-content;
+  flex-wrap: wrap;
+}
+.pe-tab {
+  padding: .5rem 1.1rem;
+  border-radius: 8px;
+  font-size: .85rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--font-body);
+  transition: all .2s;
+}
+.pe-tab.active {
+  background: var(--pe-purple);
+  color: #fff;
+  box-shadow: 0 2px 12px rgba(124,58,237,.4);
+}
+
+/* ── Filter Bar ── */
+.pe-filters {
+  display: flex;
+  gap: .75rem;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+.pe-filters select,
+.pe-filters input {
+  font-size: .82rem;
+  padding: .5rem .9rem;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface2);
+  color: var(--text);
+  font-family: var(--font-body);
+  outline: none;
+}
+.pe-filters input { flex: 1; min-width: 180px; }
+.pe-filters select:focus,
+.pe-filters input:focus { border-color: var(--pe-purple); }
+
+/* ── Trade Cards ── */
+.trade-card {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: .75rem;
+  transition: transform .2s;
+}
+.trade-card:hover { transform: translateY(-2px); }
+.trade-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: .75rem;
+}
+.trade-status-pill {
+  font-size: .7rem;
+  font-weight: 700;
+  padding: .25rem .7rem;
+  border-radius: 99px;
+  text-transform: capitalize;
+}
+.ts-pending   { background: rgba(245,158,11,.15); color: #f59e0b; }
+.ts-accepted  { background: rgba(0,200,150,.15); color: var(--pe-green); }
+.ts-completed { background: rgba(124,58,237,.15); color: var(--pe-purple); }
+.ts-declined  { background: rgba(239,68,68,.15); color: #ef4444; }
+.ts-cancelled { background: rgba(148,163,184,.15); color: var(--text-muted); }
+
+/* ── Chat ── */
+.chat-box {
+  height: 320px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: .65rem;
+  padding: 1rem;
+  background: var(--surface);
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  margin-bottom: .75rem;
+}
+.chat-msg {
+  max-width: 78%;
+  display: flex;
+  flex-direction: column;
+  gap: .15rem;
+}
+.chat-msg.mine  { align-self: flex-end; align-items: flex-end; }
+.chat-msg.theirs{ align-self: flex-start; align-items: flex-start; }
+.chat-bubble {
+  padding: .6rem 1rem;
+  border-radius: 14px;
+  font-size: .85rem;
+  line-height: 1.45;
+}
+.chat-msg.mine   .chat-bubble { background: var(--pe-purple); color: #fff; border-radius: 14px 4px 14px 14px; }
+.chat-msg.theirs .chat-bubble { background: var(--surface2); border: 1px solid var(--border); border-radius: 4px 14px 14px 14px; }
+.chat-time { font-size: .65rem; color: var(--text-muted); }
+.chat-sender { font-size: .7rem; font-weight: 600; color: var(--pe-blue); }
+.chat-input-row { display: flex; gap: .5rem; }
+.chat-input-row input { flex: 1; padding: .65rem 1rem; border-radius: 10px; border: 1px solid var(--border); background: var(--surface2); color: var(--text); font-family: var(--font-body); font-size: .875rem; outline: none; }
+.chat-input-row input:focus { border-color: var(--pe-purple); }
+
+/* ── Modal overrides ── */
+.modal-box { max-height: 92vh; overflow-y: auto; }
+.modal-box h3 { margin-bottom: 1.25rem; }
+
+/* ── Leaderboard ── */
+.lb-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: .85rem 1rem;
+  border-bottom: 1px solid var(--border);
+  transition: background .2s;
+}
+.lb-row:hover { background: var(--surface); }
+.lb-rank {
+  font-family: var(--font-head);
+  font-size: 1.1rem;
+  font-weight: 800;
+  min-width: 32px;
+  text-align: center;
+}
+.lb-rank.gold   { color: #fbbf24; }
+.lb-rank.silver { color: #94a3b8; }
+.lb-rank.bronze { color: #b45309; }
+.lb-avatar {
+  width: 38px; height: 38px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--pe-purple), var(--pe-blue));
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: .85rem; color: #fff; flex-shrink: 0;
+}
+.lb-info { flex: 1; }
+.lb-name { font-weight: 600; font-size: .9rem; }
+.lb-dept { font-size: .73rem; color: var(--text-muted); }
+.lb-badge {
+  background: rgba(0,200,150,.12);
+  color: var(--pe-green);
+  font-size: .75rem;
+  font-weight: 700;
+  padding: .2rem .65rem;
+  border-radius: 99px;
+}
+
+/* ── Rating Stars ── */
+.pe-stars { display: flex; gap: .3rem; }
+.pe-star  { font-size: 1.4rem; cursor: pointer; opacity: .35; transition: opacity .15s; }
+.pe-star.active, .pe-star:hover { opacity: 1; }
+
+/* ── Empty ── */
+.pe-empty {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--text-muted);
+  grid-column: 1/-1;
+}
+.pe-empty .icon { font-size: 3rem; margin-bottom: .75rem; }
+.pe-empty p { font-size: .95rem; }
+/* ── Quick Actions (simpler entrypoints) ── */
+.pe-actions {
+  display:flex;gap:.5rem;align-items:center;margin-top:.6rem;margin-bottom:.6rem;flex-wrap:wrap;
+}
+.pe-actions .btn { padding:.5rem .8rem;font-size:.95rem;border-radius:10px }
+.pe-actions .btn-ghost { background:transparent;border:1px solid var(--border);color:var(--text); }
+@media (max-width:720px) { .pe-actions { flex-direction:column; } .pe-actions .btn { width:100%; } }
+
+/* Improve listing action button prominence */
+.listing-card .btn { padding:.5rem .75rem; font-size:.92rem; border-radius:8px }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <img src="../assets/logo.jpg" alt="Logo"/>
+    <span>Peer Exchange</span>
+  </div>
+  <div class="sidebar-user">
+    <div class="user-avatar">ST</div>
+    <div class="user-info">
+      <div class="name user-name">Student</div>
+      <div class="role-badge user-role">Student</div>
+    </div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section">
+      <div class="nav-section-title">Navigation</div>
+      <a class="nav-item" href="/pages/student.html">
+        <span class="icon">🏠</span><span class="label">Dashboard</span>
+      </a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-title">Peer Exchange</div>
+      <a class="nav-item active" data-view="v-browse" onclick="switchPEView('v-browse')">
+        <span class="icon">🔍</span><span class="label">Browse Skills</span>
+      </a>
+      <a class="nav-item" data-view="v-my-listings" onclick="switchPEView('v-my-listings')">
+        <span class="icon">📋</span><span class="label">My Listings</span>
+      </a>
+      <a class="nav-item" data-view="v-trades" onclick="switchPEView('v-trades')">
+        <span class="icon">🔄</span><span class="label">My Trades</span>
+      </a>
+      <a class="nav-item" data-view="v-leaderboard" onclick="switchPEView('v-leaderboard')">
+        <span class="icon">🏆</span><span class="label">Leaderboard</span>
+      </a>
+    </div>
+  </nav>
+  <div class="sidebar-bottom">
+    <button class="logout-btn" data-logout><span>🚪</span> Logout</button>
+  </div>
+</aside>
+
+<!-- NOTIFICATION PANEL -->
+<div class="notif-panel">
+  <div class="notif-panel-header">
+    <h3>🔔 Notifications</h3>
+    <div style="display:flex;gap:.5rem;align-items:center">
+      <button class="btn btn-xs btn-secondary" onclick="apiFetch('/notifications/read-all',{method:'PUT'}).then(loadNotifications)">Mark all read</button>
+      <button class="btn btn-xs btn-danger" onclick="toggleNotifPanel()" title="Close Notifications">✕</button>
+    </div>
+  </div>
+  <div class="notif-list"></div>
+</div>
+
+<!-- MAIN -->
+<main class="main">
+  <div class="topbar">
+    <div style="display:flex;align-items:center;gap:1rem">
+      <button class="sidebar-toggle btn btn-secondary btn-sm" style="display:none">☰</button>
+      <div class="page-title">Browse Skills</div>
+    </div>
+    <div class="topbar-actions">
+      <button class="btn btn-primary btn-sm" onclick="openModal('create-listing-modal')">＋ Post a Skill</button>
+      <button class="notif-btn" onclick="toggleNotifPanel()">
+        🔔 <span class="notif-dot" style="display:none">0</span>
+        </button>
+      </div>
+
+      <!-- Quick actions for easier navigation -->
+      <div class="pe-actions">
+        <button class="btn btn-ghost" onclick="switchPEView('v-browse')">🔍 Browse</button>
+        <button class="btn btn-ghost" onclick="switchPEView('v-my-listings')">📋 My Listings</button>
+        <button class="btn btn-ghost" onclick="switchPEView('v-trades')">🔄 My Trades</button>
+        <button class="btn btn-primary" onclick="openModal('create-listing-modal')">＋ Post a Skill</button>
+      </div>
+  </div>
+
+  <div class="content">
+
+    <!-- ── STATS BAR ── -->
+    <div class="pe-stats" id="pe-stats">
+      <div class="pe-stat-card"><div class="pe-stat-icon">📋</div><div class="pe-stat-val" id="st-listings">—</div><div class="pe-stat-lbl">My Listings</div></div>
+      <div class="pe-stat-card"><div class="pe-stat-icon">🔄</div><div class="pe-stat-val" id="st-sent">—</div><div class="pe-stat-lbl">Trades Sent</div></div>
+      <div class="pe-stat-card"><div class="pe-stat-icon">📬</div><div class="pe-stat-val" id="st-received">—</div><div class="pe-stat-lbl">Pending Requests</div></div>
+      <div class="pe-stat-card"><div class="pe-stat-icon">✅</div><div class="pe-stat-val" id="st-completed">—</div><div class="pe-stat-lbl">Trades Completed</div></div>
+    </div>
+
+    <!-- ── BROWSE ── -->
+    <div class="view active" id="v-browse">
+      <div class="pe-filters">
+        <input type="text" id="search-input" placeholder="🔍  Search skill, topic, tag…" oninput="debounceLoad()"/>
+        <select id="filter-cat" onchange="loadBrowse()">
+          <option value="all">All Categories</option>
+          <option value="programming">💻 Programming</option>
+          <option value="design">🎨 Design</option>
+          <option value="mathematics">📐 Mathematics</option>
+          <option value="language">🌐 Language</option>
+          <option value="science">🔬 Science</option>
+          <option value="music">🎵 Music</option>
+          <option value="writing">✍️ Writing</option>
+          <option value="data_science">📊 Data Science</option>
+          <option value="hardware">🔧 Hardware</option>
+          <option value="other">Other</option>
+        </select>
+        <select id="filter-level" onchange="loadBrowse()">
+          <option value="all">All Levels</option>
+          <option value="beginner">Beginner</option>
+          <option value="intermediate">Intermediate</option>
+          <option value="advanced">Advanced</option>
+        </select>
+        <select id="filter-format" onchange="loadBrowse()">
+          <option value="all">Any Format</option>
+          <option value="online">🌐 Online</option>
+          <option value="offline">🏫 Offline</option>
+          <option value="both">Both</option>
+        </select>
+      </div>
+      <div class="pe-grid" id="browse-grid">
+        <div class="pe-empty"><div class="icon">⏳</div><p>Loading listings…</p></div>
+      </div>
+    </div>
+
+    <!-- ── MY LISTINGS ── -->
+    <div class="view" id="v-my-listings">
+      <div style="display:flex;justify-content:flex-end;margin-bottom:1rem">
+        <button class="btn btn-primary btn-sm" onclick="openModal('create-listing-modal')">＋ New Listing</button>
+      </div>
+      <div class="pe-grid" id="my-listings-grid">
+        <div class="pe-empty"><div class="icon">📋</div><p>Loading your listings…</p></div>
+      </div>
+    </div>
+
+    <!-- ── MY TRADES ── -->
+    <div class="view" id="v-trades">
+      <div class="pe-tabs" style="margin-bottom:1.5rem">
+        <button class="pe-tab active" id="tab-all-trades" onclick="switchTradeTab('all')">All</button>
+        <button class="pe-tab" id="tab-received" onclick="switchTradeTab('received')">📬 Received</button>
+        <button class="pe-tab" id="tab-sent" onclick="switchTradeTab('sent')">📤 Sent</button>
+        <button class="pe-tab" id="tab-active-trades" onclick="switchTradeTab('active')">⚡ Active</button>
+      </div>
+      <div id="trades-list" style="display:flex;flex-direction:column;gap:1rem">
+        <div class="pe-empty"><div class="icon">🔄</div><p>Loading trades…</p></div>
+      </div>
+    </div>
+
+    <!-- ── LEADERBOARD ── -->
+    <div class="view" id="v-leaderboard">
+      <div class="card">
+        <div class="card-header"><h3>🏆 Top Traders</h3></div>
+        <div class="card-body" id="leaderboard-list">
+          <div class="pe-empty"><div class="icon">⏳</div><p>Loading…</p></div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</main>
+
+<!-- ══════════════════ MODALS ══════════════════ -->
+
+<!-- Create / Edit Listing Modal -->
+<div class="modal-backdrop" id="create-listing-modal">
+  <div class="modal-box" style="max-width:560px">
+    <button class="modal-close-btn" onclick="closeModal('create-listing-modal')">✕</button>
+    <h3 id="listing-modal-title">📋 Post a Skill Listing</h3>
+
+    <input type="hidden" id="edit-listing-id"/>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+      <div class="form-group" style="grid-column:1/-1">
+        <label>What do you offer? <span style="color:var(--pe-green)">*</span></label>
+        <input type="text" id="cl-offer-title" placeholder="e.g. Python Data Analysis tutoring"/>
+      </div>
+      <div class="form-group">
+        <label>Offer Category <span style="color:var(--pe-green)">*</span></label>
+        <select id="cl-offer-cat">
+          <option value="programming">💻 Programming</option>
+          <option value="design">🎨 Design</option>
+          <option value="mathematics">📐 Mathematics</option>
+          <option value="language">🌐 Language</option>
+          <option value="science">🔬 Science</option>
+          <option value="music">🎵 Music</option>
+          <option value="writing">✍️ Writing</option>
+          <option value="data_science">📊 Data Science</option>
+          <option value="hardware">🔧 Hardware</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Your Skill Level</label>
+        <select id="cl-offer-level">
+          <option value="beginner">Beginner</option>
+          <option value="intermediate" selected>Intermediate</option>
+          <option value="advanced">Advanced</option>
+        </select>
+      </div>
+      <div class="form-group" style="grid-column:1/-1">
+        <label>Description of your offer <span style="color:var(--pe-green)">*</span></label>
+        <textarea id="cl-offer-desc" rows="3" placeholder="Describe what you'll teach, your experience, session style…"></textarea>
+      </div>
+
+      <div style="grid-column:1/-1;border-top:1px solid var(--border);padding-top:1rem;margin-top:.25rem">
+        <div style="font-size:.8rem;font-weight:700;color:var(--pe-orange);margin-bottom:.75rem;text-transform:uppercase;letter-spacing:.05em">In Exchange, I Want…</div>
+      </div>
+
+      <div class="form-group" style="grid-column:1/-1">
+        <label>Skill you want to learn <span style="color:var(--pe-orange)">*</span></label>
+        <input type="text" id="cl-want-title" placeholder="e.g. UI/UX Design in Figma"/>
+      </div>
+      <div class="form-group">
+        <label>Want Category <span style="color:var(--pe-orange)">*</span></label>
+        <select id="cl-want-cat">
+          <option value="programming">💻 Programming</option>
+          <option value="design">🎨 Design</option>
+          <option value="mathematics">📐 Mathematics</option>
+          <option value="language">🌐 Language</option>
+          <option value="science">🔬 Science</option>
+          <option value="music">🎵 Music</option>
+          <option value="writing">✍️ Writing</option>
+          <option value="data_science">📊 Data Science</option>
+          <option value="hardware">🔧 Hardware</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Partner Level Expected</label>
+        <select id="cl-want-level">
+          <option value="beginner" selected>Beginner OK</option>
+          <option value="intermediate">Intermediate</option>
+          <option value="advanced">Advanced</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Session Format</label>
+        <select id="cl-format">
+          <option value="both" selected>🌐 Both Online & Offline</option>
+          <option value="online">🌐 Online Only</option>
+          <option value="offline">🏫 Offline Only</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Estimated Hours per Session</label>
+        <input type="number" id="cl-hours" value="1.5" min="0.5" max="20" step="0.5"/>
+      </div>
+
+      <div class="form-group" style="grid-column:1/-1">
+        <label>Tags <span style="color:var(--text-muted);font-weight:400">(comma separated)</span></label>
+        <input type="text" id="cl-tags" placeholder="e.g. python, pandas, matplotlib"/>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:.75rem;margin-top:1.25rem;justify-content:flex-end">
+      <button class="btn btn-secondary" onclick="closeModal('create-listing-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="saveListing()">🚀 Post Listing</button>
+    </div>
+  </div>
+</div>
+
+<!-- Trade Request Modal -->
+<div class="modal-backdrop" id="trade-request-modal">
+  <div class="modal-box" style="max-width:480px">
+    <button class="modal-close-btn" onclick="closeModal('trade-request-modal')">✕</button>
+    <h3>🔄 Send a Trade Request</h3>
+    <input type="hidden" id="tr-listing-id"/>
+    <div id="tr-listing-summary" style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:1rem;margin-bottom:1.25rem;font-size:.85rem;color:var(--text-muted)"></div>
+
+    <div class="form-group">
+      <label>What will you offer in return? <span style="color:var(--pe-green)">*</span></label>
+      <input type="text" id="tr-offer-title" placeholder="e.g. Java + Spring Boot tutoring"/>
+    </div>
+    <div class="form-group">
+      <label>Brief description of your counter-offer</label>
+      <textarea id="tr-offer-desc" rows="2" placeholder="Your background, what sessions will look like…"></textarea>
+    </div>
+    <div class="form-group">
+      <label>Proposed Schedule <span style="color:var(--text-muted);font-weight:400">(optional)</span></label>
+      <input type="text" id="tr-schedule" placeholder="e.g. Weekends 10am–12pm, online"/>
+    </div>
+    <div class="form-group">
+      <label>Message to the poster</label>
+      <textarea id="tr-message" rows="2" placeholder="Introduce yourself and why this trade is a great fit…"></textarea>
+    </div>
+    <div style="display:flex;gap:.75rem;justify-content:flex-end;margin-top:1.25rem">
+      <button class="btn btn-secondary" onclick="closeModal('trade-request-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="sendTradeRequest()">Send Request 🚀</button>
+    </div>
+  </div>
+</div>
+
+<!-- Chat Modal -->
+<div class="modal-backdrop" id="chat-modal">
+  <div class="modal-box" style="max-width:520px">
+    <button class="modal-close-btn" onclick="closeModal('chat-modal');clearInterval(window._chatPoll)">✕</button>
+    <h3 id="chat-modal-title">💬 Trade Chat</h3>
+    <div id="chat-trade-info" style="font-size:.8rem;color:var(--text-muted);margin-bottom:.85rem"></div>
+    <div class="chat-box" id="chat-messages"></div>
+    <div class="chat-input-row">
+      <input type="text" id="chat-input" placeholder="Type a message…" onkeydown="if(event.key==='Enter')sendChatMsg()"/>
+      <button class="btn btn-primary btn-sm" onclick="sendChatMsg()">Send</button>
+    </div>
+    <div style="display:flex;justify-content:flex-end;margin-top:.85rem">
+      <button class="btn btn-secondary btn-sm" id="complete-trade-btn" onclick="completeTrade()" style="display:none">✅ Mark Complete</button>
+    </div>
+  </div>
+</div>
+
+<!-- Rate Modal -->
+<div class="modal-backdrop" id="rate-modal">
+  <div class="modal-box" style="max-width:420px">
+    <button class="modal-close-btn" onclick="closeModal('rate-modal')">✕</button>
+    <h3>⭐ Rate Your Partner</h3>
+    <input type="hidden" id="rate-trade-id"/>
+    <p style="color:var(--text-muted);font-size:.875rem;margin-bottom:1.25rem">How was the trade experience?</p>
+    <div class="form-group">
+      <label>Rating</label>
+      <div class="pe-stars" id="pe-star-row">
+        <span class="pe-star" data-v="1">⭐</span>
+        <span class="pe-star" data-v="2">⭐</span>
+        <span class="pe-star" data-v="3">⭐</span>
+        <span class="pe-star" data-v="4">⭐</span>
+        <span class="pe-star" data-v="5">⭐</span>
+      </div>
+      <input type="hidden" id="pe-star-val" value="0"/>
+    </div>
+    <div class="form-group">
+      <label>Review <span style="color:var(--text-muted);font-weight:400">(optional)</span></label>
+      <textarea id="rate-review" rows="3" placeholder="Share your experience…"></textarea>
+    </div>
+    <div style="display:flex;gap:.75rem;justify-content:flex-end;margin-top:1rem">
+      <button class="btn btn-secondary" onclick="closeModal('rate-modal')">Skip</button>
+      <button class="btn btn-primary" onclick="submitRating()">Submit Rating</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ SCRIPTS ══════════════════ -->
+<script src="../js/app.js"></script>
+<script>
+const user = requireAuth(['student']);
+if (user) {
+  initUserUI(user);
+  initPE();
+}
+
+// ── Sidebar nav ──
+document.querySelectorAll('.nav-item[data-view]').forEach(el => {
+  el.addEventListener('click', () => {
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    el.classList.add('active');
+    const title = el.querySelector('.label')?.textContent;
+    if (title) document.querySelector('.page-title').textContent = title;
+  });
+});
+
+function switchPEView(id) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  const el = document.getElementById(id);
+  if (el) el.classList.add('active');
+  // Load data for specific views
+  if (id === 'v-browse') loadBrowse();
+  if (id === 'v-my-listings') loadMyListings();
+  if (id === 'v-trades') loadTrades('all');
+  if (id === 'v-leaderboard') loadLeaderboard();
+}
+
+async function initPE() {
+  await Promise.all([loadStats(), loadBrowse(), loadNotifications()]);
+  setInterval(loadNotifications, 30000);
+}
+
+// ── Stats ──
+async function loadStats() {
+  const data = await apiFetch('/peer-exchange/stats');
+  if (!data.success) return;
+  const s = data.data;
+  document.getElementById('st-listings').textContent  = s.myListings;
+  document.getElementById('st-sent').textContent      = s.sentTrades;
+  document.getElementById('st-received').textContent  = s.receivedTrades;
+  document.getElementById('st-completed').textContent = s.completedTrades;
+}
+
+// ── Browse ──
+let searchTimer;
+function debounceLoad() {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(loadBrowse, 350);
+}
+
+async function loadBrowse() {
+  const grid = document.getElementById('browse-grid');
+  grid.innerHTML = '<div class="pe-empty"><div class="icon">⏳</div><p>Loading…</p></div>';
+  const cat    = document.getElementById('filter-cat').value;
+  const level  = document.getElementById('filter-level').value;
+  const format = document.getElementById('filter-format').value;
+  const search = document.getElementById('search-input').value.trim();
+  let qs = `?category=${cat}&level=${level}&format=${format}`;
+  if (search) qs += `&search=${encodeURIComponent(search)}`;
+  const data = await apiFetch('/peer-exchange/listings' + qs);
+  if (!data.success || !data.data.length) {
+    grid.innerHTML = '<div class="pe-empty"><div class="icon">🔍</div><p>No listings found. Try changing your filters or be the first to post!</p><div style="margin-top:.75rem"><button class="btn btn-primary" onclick="openModal(\'create-listing-modal\')">＋ Post a Skill</button></div></div>';
+    return;
+  }
+  grid.innerHTML = data.data.map(l => renderListingCard(l, false)).join('');
+}
+
+async function loadMyListings() {
+  const grid = document.getElementById('my-listings-grid');
+  grid.innerHTML = '<div class="pe-empty"><div class="icon">⏳</div><p>Loading…</p></div>';
+  const data = await apiFetch('/peer-exchange/listings?myListings=true');
+  if (!data.success || !data.data.length) {
+    grid.innerHTML = '<div class="pe-empty"><div class="icon">📋</div><p>You haven\'t posted any listings yet.<br/><button class="btn btn-primary btn-sm" style="margin-top:.75rem" onclick="openModal(\'create-listing-modal\')">Post your first skill</button></p></div>';
+    return;
+  }
+  grid.innerHTML = data.data.map(l => renderListingCard(l, true)).join('');
+}
+
+function renderListingCard(l, isOwner) {
+  const initials = l.postedBy?.name?.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2) || 'ST';
+  const dept = l.postedBy?.department || '';
+  const sem = l.postedBy?.semester ? `Sem ${l.postedBy.semester}` : '';
+  const badges = (l.postedBy?.badges?.length || 0);
+  const format = { online:'🌐 Online', offline:'🏫 Offline', both:'🌐/🏫 Both' }[l.sessionFormat] || l.sessionFormat;
+  const tags = (l.tags||[]).slice(0,3).map(t=>`<span class="lc-tag">${t}</span>`).join('');
+  const rating = l.averageRating ? `⭐ ${Number(l.averageRating).toFixed(1)} (${l.totalRatings})` : 'New';
+
+  const statusColors = { active:'badge-info', matched:'badge-warning', completed:'badge-success', closed:'badge-danger' };
+  const statusBadge = `<span class="badge ${statusColors[l.status]||'badge-info'}" style="font-size:.65rem">${l.status}</span>`;
+
+  const actions = isOwner
+    ? `<button class="btn btn-secondary btn-sm" onclick="editListing(${JSON.stringify(l).replace(/"/g,'&quot;')})">Edit</button>
+       <button class="btn btn-sm" style="background:rgba(239,68,68,.1);color:#ef4444;border:1px solid rgba(239,68,68,.2)" onclick="closeListing('${l._id}')">Close</button>`
+    : `<button class="btn btn-primary btn-sm" onclick="openTradeModal('${l._id}','${escHtml(l.offerTitle)}','${escHtml(l.wantTitle)}')">🔄 Request Trade</button>`;
+
+  return `
+    <div class="listing-card" style="--card-color:var(--pe-purple)">
+      <div class="lc-head">
+        <div class="lc-avatar">${initials}</div>
+        <div class="lc-user-info">
+          <div class="lc-name">${l.postedBy?.name || 'Student'}</div>
+          <div class="lc-meta">${[dept,sem].filter(Boolean).join(' · ')} ${badges?`· 🏅 ${badges} badge${badges>1?'s':''}`:''}</div>
+        </div>
+        <div class="lc-views">👁️ ${l.views||0}</div>
+      </div>
+      <div class="trade-row">
+        <div class="trade-side">
+          <div class="trade-side-label offers">Offers</div>
+          <div class="trade-side-title">${escHtml(l.offerTitle)}</div>
+        </div>
+        <div class="trade-swap-icon">⇌</div>
+        <div class="trade-side">
+          <div class="trade-side-label wants">Wants</div>
+          <div class="trade-side-title">${escHtml(l.wantTitle)}</div>
+        </div>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:center">
+        <span class="cat-pill cat-${l.offerCategory}">${l.offerCategory.replace('_',' ')}</span>
+        <span class="level-pill level-${l.offerLevel}">${l.offerLevel}</span>
+        <span style="font-size:.72rem;color:var(--text-muted)">${format}</span>
+        <span style="font-size:.72rem;color:var(--text-muted)">~${l.estimatedHours}h/session</span>
+        ${statusBadge}
+      </div>
+      ${tags ? `<div class="lc-tags">${tags}</div>` : ''}
+      <div class="lc-footer">
+        <span style="font-size:.72rem;color:var(--text-muted)">${rating}</span>
+        <div style="display:flex;gap:.5rem">${actions}</div>
+      </div>
+    </div>`;
+}
+
+// ── Listing CRUD ──
+function editListing(l) {
+  document.getElementById('listing-modal-title').textContent = '✏️ Edit Listing';
+  document.getElementById('edit-listing-id').value = l._id;
+  document.getElementById('cl-offer-title').value = l.offerTitle;
+  document.getElementById('cl-offer-cat').value   = l.offerCategory;
+  document.getElementById('cl-offer-level').value = l.offerLevel;
+  document.getElementById('cl-offer-desc').value  = l.offerDescription;
+  document.getElementById('cl-want-title').value  = l.wantTitle;
+  document.getElementById('cl-want-cat').value    = l.wantCategory;
+  document.getElementById('cl-want-level').value  = l.wantLevel;
+  document.getElementById('cl-format').value      = l.sessionFormat;
+  document.getElementById('cl-hours').value       = l.estimatedHours;
+  document.getElementById('cl-tags').value        = (l.tags||[]).join(', ');
+  openModal('create-listing-modal');
+}
+
+async function saveListing() {
+  const id = document.getElementById('edit-listing-id').value;
+  const body = {
+    offerTitle:       document.getElementById('cl-offer-title').value.trim(),
+    offerCategory:    document.getElementById('cl-offer-cat').value,
+    offerLevel:       document.getElementById('cl-offer-level').value,
+    offerDescription: document.getElementById('cl-offer-desc').value.trim(),
+    wantTitle:        document.getElementById('cl-want-title').value.trim(),
+    wantCategory:     document.getElementById('cl-want-cat').value,
+    wantLevel:        document.getElementById('cl-want-level').value,
+    sessionFormat:    document.getElementById('cl-format').value,
+    estimatedHours:   parseFloat(document.getElementById('cl-hours').value) || 1,
+    tags:             document.getElementById('cl-tags').value.split(',').map(t=>t.trim()).filter(Boolean)
+  };
+  if (!body.offerTitle || !body.wantTitle || !body.offerDescription) {
+    return showToast('Please fill all required fields', 'error');
+  }
+  const url    = id ? `/peer-exchange/listings/${id}` : '/peer-exchange/listings';
+  const method = id ? 'PUT' : 'POST';
+  const data   = await apiFetch(url, { method, body: JSON.stringify(body) });
+  if (data.success) {
+    showToast(id ? 'Listing updated!' : 'Listing posted! 🎉');
+    closeModal('create-listing-modal');
+    // Reset form
+    document.getElementById('edit-listing-id').value = '';
+    document.getElementById('listing-modal-title').textContent = '📋 Post a Skill Listing';
+    ['cl-offer-title','cl-offer-desc','cl-want-title','cl-tags'].forEach(id => document.getElementById(id).value='');
+    loadStats();
+    loadMyListings();
+    if (document.getElementById('v-browse').classList.contains('active')) loadBrowse();
+  } else {
+    showToast(data.message || 'Error saving listing', 'error');
+  }
+}
+
+async function closeListing(id) {
+  if (!confirm('Close this listing? It will no longer appear in browse.')) return;
+  const data = await apiFetch(`/peer-exchange/listings/${id}`, { method: 'DELETE' });
+  if (data.success) { showToast('Listing closed.'); loadMyListings(); loadStats(); }
+  else showToast(data.message, 'error');
+}
+
+// ── Trade Requests ──
+function openTradeModal(listingId, offerTitle, wantTitle) {
+  document.getElementById('tr-listing-id').value = listingId;
+  document.getElementById('tr-listing-summary').innerHTML =
+    `<strong>They offer:</strong> ${escHtml(offerTitle)} &nbsp;⇌&nbsp; <strong>They want:</strong> ${escHtml(wantTitle)}`;
+  document.getElementById('tr-offer-title').value = '';
+  document.getElementById('tr-offer-desc').value  = '';
+  document.getElementById('tr-schedule').value    = '';
+  document.getElementById('tr-message').value     = '';
+  openModal('trade-request-modal');
+}
+
+async function sendTradeRequest() {
+  const body = {
+    listing:           document.getElementById('tr-listing-id').value,
+    counterOfferTitle: document.getElementById('tr-offer-title').value.trim(),
+    counterOfferDesc:  document.getElementById('tr-offer-desc').value.trim(),
+    proposedSchedule:  document.getElementById('tr-schedule').value.trim(),
+    message:           document.getElementById('tr-message').value.trim()
+  };
+  if (!body.counterOfferTitle) return showToast('Please describe what you offer in return', 'error');
+  const data = await apiFetch('/peer-exchange/trades', { method: 'POST', body: JSON.stringify(body) });
+  if (data.success) {
+    showToast('Trade request sent! 🚀');
+    closeModal('trade-request-modal');
+    loadStats();
+  } else {
+    showToast(data.message || 'Could not send request', 'error');
+  }
+}
+
+// ── Trades List ──
+let currentTradeTab = 'all';
+function switchTradeTab(tab) {
+  currentTradeTab = tab;
+  ['all','received','sent','active-trades'].forEach(t => {
+    const el = document.getElementById(`tab-${t}`);
+    if (el) el.classList.toggle('active', t === (tab === 'active' ? 'active-trades' : tab));
+  });
+  loadTrades(tab);
+}
+
+async function loadTrades(role = 'all') {
+  const list = document.getElementById('trades-list');
+  list.innerHTML = '<div class="pe-empty"><div class="icon">⏳</div><p>Loading…</p></div>';
+  const data = await apiFetch(`/peer-exchange/trades?role=${role}`);
+  if (!data.success || !data.data.length) {
+    list.innerHTML = '<div class="pe-empty"><div class="icon">🔄</div><p>No trades here yet.</p></div>';
+    return;
+  }
+  list.innerHTML = data.data.map(t => renderTradeCard(t)).join('');
+}
+
+function renderTradeCard(t) {
+  const isOwner = t.listingOwner?._id === user.id || t.listingOwner?._id?.toString() === user.id;
+  const partner = isOwner ? t.requester : t.listingOwner;
+  const partnerName = partner?.name || 'Student';
+  const statusClass = { pending:'ts-pending', accepted:'ts-accepted', completed:'ts-completed', declined:'ts-declined', cancelled:'ts-cancelled' }[t.status] || 'ts-pending';
+
+  let actions = '';
+  if (t.status === 'pending' && isOwner) {
+    actions = `
+      <button class="btn btn-primary btn-sm" onclick="updateTradeStatus('${t._id}','accepted')">✅ Accept</button>
+      <button class="btn btn-sm" style="background:rgba(239,68,68,.1);color:#ef4444;border:1px solid rgba(239,68,68,.2)" onclick="updateTradeStatus('${t._id}','declined')">❌ Decline</button>`;
+  } else if (t.status === 'pending' && !isOwner) {
+    actions = `<button class="btn btn-secondary btn-sm" onclick="updateTradeStatus('${t._id}','cancelled')">Cancel</button>`;
+  } else if (t.status === 'accepted') {
+    actions = `<button class="btn btn-primary btn-sm" onclick="openChat('${t._id}','${escHtml(partnerName)}','${t.listing?.offerTitle||''}')">💬 Chat</button>`;
+  } else if (t.status === 'completed') {
+    actions = `<button class="btn btn-secondary btn-sm" onclick="openRateModal('${t._id}')">⭐ Rate</button>`;
+  }
+
+  return `
+    <div class="trade-card">
+      <div class="trade-card-head">
+        <div>
+          <div style="font-weight:600;font-size:.9rem">${t.listing?.offerTitle || 'Skill Trade'}</div>
+          <div style="font-size:.75rem;color:var(--text-muted);margin-top:.2rem">
+            ${isOwner ? '📬 Received from' : '📤 Sent to'} <strong>${partnerName}</strong>
+            · ${formatDate(t.createdAt)}
+          </div>
+        </div>
+        <span class="trade-status-pill ${statusClass}">${t.status}</span>
+      </div>
+      <div style="font-size:.82rem;color:var(--text-muted)">
+        <strong>Counter Offer:</strong> ${escHtml(t.counterOfferTitle)}
+        ${t.proposedSchedule ? `<br/><strong>Schedule:</strong> ${escHtml(t.proposedSchedule)}` : ''}
+        ${t.message ? `<br/><em>"${escHtml(t.message)}"</em>` : ''}
+        ${t.agreedSchedule ? `<br/><span style="color:var(--pe-green)">✅ Agreed: ${escHtml(t.agreedSchedule)}</span>` : ''}
+      </div>
+      <div style="display:flex;gap:.5rem;flex-wrap:wrap">${actions}</div>
+    </div>`;
+}
+
+async function updateTradeStatus(tradeId, status, agreedSchedule) {
+  let sched = agreedSchedule;
+  if (status === 'accepted') {
+    sched = prompt('Enter agreed schedule (optional):', '') || '';
+  }
+  const body = { status };
+  if (sched) body.agreedSchedule = sched;
+  const data = await apiFetch(`/peer-exchange/trades/${tradeId}/status`, { method: 'PUT', body: JSON.stringify(body) });
+  if (data.success) {
+    showToast(`Trade ${status}! 🎉`);
+    loadTrades(currentTradeTab);
+    loadStats();
+  } else {
+    showToast(data.message || 'Error updating trade', 'error');
+  }
+}
+
+// ── Chat ──
+let currentChatTradeId = null;
+let currentChatPartner = null;
+
+async function openChat(tradeId, partnerName, listingTitle) {
+  currentChatTradeId = tradeId;
+  currentChatPartner = partnerName;
+  document.getElementById('chat-modal-title').textContent = `💬 Chat with ${partnerName}`;
+  document.getElementById('chat-trade-info').textContent = listingTitle ? `Skill Exchange: ${listingTitle}` : '';
+  document.getElementById('complete-trade-btn').style.display = 'flex';
+  openModal('chat-modal');
+  await loadChat();
+  // Poll for new messages
+  clearInterval(window._chatPoll);
+  window._chatPoll = setInterval(loadChat, 5000);
+}
+
+async function loadChat() {
+  if (!currentChatTradeId) return;
+  const data = await apiFetch(`/peer-exchange/trades/${currentChatTradeId}/chat`);
+  if (!data.success) return;
+  const box = document.getElementById('chat-messages');
+  if (!data.data.length) {
+    box.innerHTML = '<div style="text-align:center;color:var(--text-muted);font-size:.85rem;margin:auto">Say hi to start the exchange! 👋</div>';
+    return;
+  }
+  box.innerHTML = data.data.map(m => {
+    const mine = m.sender?._id === user.id || m.sender?._id?.toString() === user.id;
+    return `<div class="chat-msg ${mine ? 'mine' : 'theirs'}">
+      ${!mine ? `<div class="chat-sender">${m.sender?.name || 'Partner'}</div>` : ''}
+      <div class="chat-bubble">${escHtml(m.message)}</div>
+      <div class="chat-time">${timeAgo(m.createdAt)}</div>
+    </div>`;
+  }).join('');
+  box.scrollTop = box.scrollHeight;
+}
+
+async function sendChatMsg() {
+  const input = document.getElementById('chat-input');
+  const msg = input.value.trim();
+  if (!msg || !currentChatTradeId) return;
+  input.value = '';
+  const data = await apiFetch(`/peer-exchange/trades/${currentChatTradeId}/chat`, {
+    method: 'POST',
+    body: JSON.stringify({ message: msg })
+  });
+  if (data.success) await loadChat();
+  else showToast(data.message || 'Could not send message', 'error');
+}
+
+async function completeTrade() {
+  if (!currentChatTradeId) return;
+  if (!confirm('Mark this trade as completed?')) return;
+  const data = await apiFetch(`/peer-exchange/trades/${currentChatTradeId}/status`, {
+    method: 'PUT',
+    body: JSON.stringify({ status: 'completed' })
+  });
+  if (data.success) {
+    showToast('Trade completed! 🎉 Now rate your partner.');
+    closeModal('chat-modal');
+    clearInterval(window._chatPoll);
+    openRateModal(currentChatTradeId);
+    loadTrades(currentTradeTab);
+    loadStats();
+  } else {
+    showToast(data.message, 'error');
+  }
+}
+
+// ── Rating ──
+document.querySelectorAll('.pe-star').forEach(s => {
+  s.addEventListener('click', () => {
+    const v = parseInt(s.dataset.v);
+    document.getElementById('pe-star-val').value = v;
+    document.querySelectorAll('.pe-star').forEach((st,i) => st.classList.toggle('active', i < v));
+  });
+});
+
+function openRateModal(tradeId) {
+  document.getElementById('rate-trade-id').value = tradeId;
+  document.getElementById('rate-review').value   = '';
+  document.getElementById('pe-star-val').value   = '0';
+  document.querySelectorAll('.pe-star').forEach(s => s.classList.remove('active'));
+  openModal('rate-modal');
+}
+
+async function submitRating() {
+  const tradeId = document.getElementById('rate-trade-id').value;
+  const rating  = parseInt(document.getElementById('pe-star-val').value);
+  const review  = document.getElementById('rate-review').value.trim();
+  if (!rating) return showToast('Please select a rating', 'error');
+  const data = await apiFetch(`/peer-exchange/trades/${tradeId}/rate`, {
+    method: 'POST',
+    body: JSON.stringify({ rating, review })
+  });
+  if (data.success) { showToast('Rating submitted! ⭐'); closeModal('rate-modal'); }
+  else showToast(data.message || 'Error submitting rating', 'error');
+}
+
+// ── Leaderboard ──
+async function loadLeaderboard() {
+  const data = await apiFetch('/peer-exchange/leaderboard');
+  const el = document.getElementById('leaderboard-list');
+  if (!data.success || !data.data.length) {
+    el.innerHTML = '<div class="pe-empty"><div class="icon">🏆</div><p>No completed trades yet — be the first to finish one!</p></div>';
+    return;
+  }
+  const medals = ['gold','silver','bronze'];
+  el.innerHTML = data.data.map((r,i) => {
+    const initials = r.user.name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+    const rankClass = medals[i] || '';
+    const rankLabel = i===0?'🥇':i===1?'🥈':i===2?'🥉':`#${i+1}`;
+    return `
+      <div class="lb-row">
+        <div class="lb-rank ${rankClass}">${rankLabel}</div>
+        <div class="lb-avatar">${initials}</div>
+        <div class="lb-info">
+          <div class="lb-name">${r.user.name}</div>
+          <div class="lb-dept">${r.user.department||''} ${r.user.semester?`· Sem ${r.user.semester}`:''}</div>
+        </div>
+        <span class="lb-badge">✅ ${r.completed} trade${r.completed!==1?'s':''}</span>
+      </div>`;
+  }).join('');
+}
+
+// ── Utility ──
+function escHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+</script>
+</body>
+</html>

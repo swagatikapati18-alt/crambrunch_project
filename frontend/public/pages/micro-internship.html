@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Micro-Internships & Badges — CRAMBRUNCH</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@500;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="../css/main.css"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+<style>
+  :root {
+    --bg: #0f172a; --surface: #1e293b; --surface2: #334155;
+    --border: #475569; --text: #f8fafc; --text-muted: #94a3b8;
+    --primary: #3b82f6; --primary-hover: #2563eb;
+    --success: #10b981; --warning: #f59e0b; --danger: #ef4444;
+  }
+  body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; margin: 0; padding: 0; min-height: 100vh; display: flex; flex-direction: column; }
+  h1, h2, h3 { font-family: 'Syne', sans-serif; margin: 0; }
+  .header { padding: 1.5rem 2rem; background: var(--surface); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 10; }
+  .header h1 { font-size: 1.5rem; display: flex; align-items: center; gap: .75rem; background: linear-gradient(135deg, #a78bfa, #3b82f6); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+  .nav-tabs { display: flex; gap: 1rem; border-bottom: 1px solid var(--border); margin: 2rem 2rem 0; padding-bottom: 0px; }
+  .nav-tab { padding: .75rem 1.5rem; background: transparent; border: none; color: var(--text-muted); cursor: pointer; font-weight: 500; font-family: 'DM Sans'; border-bottom: 2px solid transparent; transition: all 0.2s; font-size: 1rem; }
+  .nav-tab:hover { color: var(--text); background: rgba(255,255,255,.05); }
+  .nav-tab.active { color: #8b5cf6; border-bottom-color: #8b5cf6; }
+  .container { padding: 2rem; flex: 1; max-width: 1200px; margin: 0 auto; width: 100%; box-sizing: border-box; }
+  
+  .view { display: none; animation: fadeIn .3s ease; }
+  .view.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1.5rem; }
+  
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem; display: flex; flex-direction: column; position: relative; overflow: hidden; }
+  .card:hover { border-color: rgba(139, 92, 246, 0.5); box-shadow: 0 4px 20px rgba(0,0,0,.2); }
+  .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem; }
+  .task-title { font-size: 1.25rem; font-weight: 600; margin-bottom: .5rem; line-height: 1.4; color: var(--text); }
+  .task-meta { display: flex; gap: 1rem; font-size: .85rem; color: var(--text-muted); margin-bottom: 1rem; flex-wrap: wrap; }
+  .task-meta span { display: flex; align-items: center; gap: .4rem; }
+  .skills { display: flex; gap: .5rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
+  .skill-tag { background: var(--surface2); padding: .25rem .75rem; border-radius: 20px; font-size: .75rem; color: #cbd5e1; }
+  
+  .badge-preview { background: rgba(0,0,0,.2); padding: .75rem; border-radius: 8px; border: 1px dashed var(--border); display: flex; align-items: center; gap: 1rem; margin-top: auto; margin-bottom: 1.5rem; }
+  .badge-icon-lg { font-size: 2rem; width: 48px; height: 48px; display: flex; align-items: center; justify-content: center; background: var(--surface2); border-radius: 12px; }
+  
+  .btn-apply { background: #8b5cf6; color: #fff; width: 100%; border: none; padding: .8rem; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all .2s; }
+  .btn-apply:hover { background: #7c3aed; transform: translateY(-2px); }
+  .btn-apply:disabled { background: var(--surface2); color: var(--text-muted); cursor: not-allowed; transform: none; }
+  
+  /* Teacher specific */
+  .btn-outline { background: transparent; border: 1px solid #8b5cf6; color: #8b5cf6; padding: .8rem; border-radius: 8px; cursor: pointer; text-align: center; font-weight: 600; }
+  .btn-outline:hover { background: rgba(139, 92, 246, .1); }
+
+  /* Modals */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.7); z-index: 100; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
+  .modal { background: var(--surface); width: 90%; max-width: 600px; border-radius: 16px; border: 1px solid var(--border); overflow: hidden; }
+  .modal-header { padding: 1.5rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+  .modal-body { padding: 1.5rem; max-height: 70vh; overflow-y: auto; }
+  .modal-close { background: none; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer; }
+  
+  .form-group { margin-bottom: 1.25rem; }
+  .form-group label { display: block; margin-bottom: .5rem; font-size: .875rem; color: var(--text-muted); }
+  .form-group input, .form-group textarea, .form-group select { width: 100%; padding: .8rem; background: #0f172a; border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: inherit; font-size: .95rem; box-sizing: border-box; }
+  .form-group input:focus, .form-group textarea:focus, .form-group select:focus { outline: none; border-color: #8b5cf6; box-shadow: 0 0 0 2px rgba(139,92,246,.2); }
+  
+  /* Badges Grid */
+  .badge-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1.5rem; }
+  .digital-badge { background: linear-gradient(145deg, var(--surface) 0%, #1e1e2f 100%); border: 1px solid var(--border); border-radius: 16px; padding: 2rem 1.5rem; text-align: center; position: relative; transition: all .3s; }
+  .digital-badge:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(0,0,0,.3); border-color: rgba(255,255,255,.2); }
+  .b-icon-wrap { width: 80px; height: 80px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 3rem; margin: 0 auto 1rem; position: relative; background: #0f172a; }
+  .b-icon-wrap::before { content: ''; position: absolute; inset: -3px; border-radius: 50%; background: conic-gradient(from 0deg, var(--b-color), transparent, var(--b-color)); animation: spin 4s linear infinite; }
+  @keyframes spin { 100% { transform: rotate(360deg); } }
+  .b-icon-inner { width: 100%; height: 100%; border-radius: 50%; background: #1e293b; display: flex; align-items: center; justify-content: center; position: relative; z-index: 1; }
+  
+  .empty-state { text-align: center; padding: 4rem 2rem; color: var(--text-muted); }
+  .empty-state i { font-size: 3rem; margin-bottom: 1rem; opacity: 0.5; }
+
+  /* Utilities */
+  .status-badge { padding: .25rem .75rem; border-radius: 20px; font-size: .75rem; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; }
+  .status-open { background: rgba(16, 185, 129, .1); color: #10b981; border: 1px solid rgba(16, 185, 129, .2); }
+  .status-progress { background: rgba(245, 158, 11, .1); color: #f59e0b; border: 1px solid rgba(245, 158, 11, .2); }
+  .status-completed { background: rgba(139, 92, 246, .1); color: #8b5cf6; border: 1px solid rgba(139, 92, 246, .2); }
+
+  .back-btn { background: var(--surface2); border: none; color: var(--text); padding: .5rem 1rem; border-radius: 6px; cursor: pointer; display: flex; align-items: center; gap: .5rem; }
+  .back-btn:hover { background: #475569; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1><i class="fas fa-microchip"></i> Micro-Internship Ecosystem</h1>
+  <button class="back-btn" onclick="goBack()">🏠 Back to Dashboard</button>
+</div>
+
+<div class="nav-tabs" id="tabs-container">
+  <!-- Filled dynamically based on role -->
+</div>
+
+<div class="container">
+  <!-- 1. BROWSE TASKS (Student) -->
+  <div class="view active" id="v-browse">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+      <div>
+        <h2>Available Micro-Internships</h2>
+        <p style="color:var(--text-muted); font-size:14px; margin-top:5px;">Complete departmental tasks to earn verifiable digital badges.</p>
+      </div>
+      <div>
+        <select id="filter-browse" onchange="loadBrowse()" style="padding:.5rem; border-radius:6px; background:var(--surface); color:var(--text); border:1px solid var(--border);">
+          <option value="">All Categories</option>
+          <option value="Technical">Technical</option>
+          <option value="Research">Research</option>
+          <option value="Leadership">Leadership</option>
+          <option value="Creative">Creative</option>
+        </select>
+      </div>
+    </div>
+    <div class="grid" id="browse-grid">
+      <div class="empty-state"><i class="fas fa-spinner fa-spin"></i><p>Loading...</p></div>
+    </div>
+  </div>
+
+  <!-- 2. MY APPLICATIONS (Student) -->
+  <div class="view" id="v-my-apps">
+    <div style="margin-bottom:1.5rem;">
+      <h2>My Applications & Active Tasks</h2>
+      <p style="color:var(--text-muted); font-size:14px; margin-top:5px;">Track internships you applied for and submit your work.</p>
+    </div>
+    <div class="grid" id="apps-grid"></div>
+  </div>
+
+  <!-- 3. MY BADGES (Student) -->
+  <div class="view" id="v-my-badges">
+    <div style="margin-bottom:2rem; text-align:center;">
+      <h2 style="font-size:2rem; background: linear-gradient(135deg, #f59e0b, #ec4899); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">My Digital Backpack</h2>
+      <p style="color:var(--text-muted); margin-top:5px;">Your verifiable achievement badges.</p>
+    </div>
+    <div class="badge-grid" id="badges-grid"></div>
+  </div>
+
+  <!-- 4. MANAGE TASKS (Teacher) -->
+  <div class="view" id="v-manage">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+      <div>
+        <h2>Manage Micro-Internships</h2>
+        <p style="color:var(--text-muted); font-size:14px; margin-top:5px;">Post tasks for students in your department and award badges.</p>
+      </div>
+      <button class="btn-apply" style="width:auto; padding: .6rem 1.2rem;" onclick="openModal('m-post-task')">+ Post New Task</button>
+    </div>
+    <div class="grid" id="manage-grid"></div>
+  </div>
+
+  <!-- 5. REVIEW APPLICATIONS (Teacher - Sub-view) -->
+  <div class="view" id="v-review">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+      <div style="display:flex; align-items:center; gap:1rem;">
+        <button class="back-btn" onclick="switchTab('v-manage')"><i class="fas fa-arrow-left"></i></button>
+        <div>
+          <h2 id="review-title">Reviewing Applications</h2>
+          <p style="color:var(--text-muted); font-size:14px; margin-top:5px;" id="review-subtitle">Manage applicants for this task.</p>
+        </div>
+      </div>
+      <button class="btn-outline" style="border-color:var(--success); color:var(--success);" id="btn-mark-complete" style="display:none;" onclick="showAwardModal()">✅ Mark Task Complete</button>
+    </div>
+    <div style="background:var(--surface); border-radius:12px; border:1px solid var(--border); overflow:hidden;">
+      <table width="100%" style="border-collapse: collapse; text-align:left;">
+        <thead>
+          <tr style="background:var(--surface2); color:var(--text-muted); font-size:.85rem; border-bottom:1px solid var(--border);">
+            <th style="padding:1rem;">Student</th>
+            <th style="padding:1rem;">Applied Date</th>
+            <th style="padding:1rem;">Status</th>
+            <th style="padding:1rem;">Submission</th>
+            <th style="padding:1rem; text-align:right;">Action</th>
+          </tr>
+        </thead>
+        <tbody id="review-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- MODALS -->
+
+<!-- Apply Modal (Student) -->
+<div class="modal-overlay" id="m-apply">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 style="margin:0"><i class="fas fa-paper-plane"></i> Apply for Micro-Internship</h3>
+      <button class="modal-close" onclick="closeModal('m-apply')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <h4 id="apply-title" style="margin-top:0; color:var(--primary); margin-bottom:.5rem;">Task Title</h4>
+      <p style="font-size:.85rem; color:var(--text-muted); margin-bottom:1.5rem;">Explain why you are a good fit for this task. Teachers will review your profile and statement.</p>
+      
+      <input type="hidden" id="apply-task-id">
+      <div class="form-group">
+        <label>Application Statement</label>
+        <textarea id="apply-statement" rows="4" placeholder="I have experience with React and Node.js, and I am very interested in helping out with..."></textarea>
+      </div>
+      <button class="btn-apply" onclick="submitApplication()">Send Application</button>
+    </div>
+  </div>
+</div>
+
+<!-- Submit Work Modal (Student) -->
+<div class="modal-overlay" id="m-submit-work">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 style="margin:0"><i class="fas fa-upload"></i> Submit Completed Work</h3>
+      <button class="modal-close" onclick="closeModal('m-submit-work')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:.85rem; color:var(--text-muted); margin-bottom:1.5rem;">Provide a link to your completed work (e.g., GitHub repo, Google Doc, Figma link).</p>
+      
+      <input type="hidden" id="submit-app-id">
+      <div class="form-group">
+        <label>Submission Link / Details</label>
+        <textarea id="submit-text" rows="3" placeholder="https://github.com/my-repo..."></textarea>
+      </div>
+      <button class="btn-apply" onclick="submitWork()">Submit Work</button>
+    </div>
+  </div>
+</div>
+
+<!-- Post Task Modal (Teacher) -->
+<div class="modal-overlay" id="m-post-task">
+  <div class="modal" style="max-width: 700px;">
+    <div class="modal-header">
+      <h3 style="margin:0"><i class="fas fa-plus-circle"></i> Post Micro-Internship</h3>
+      <button class="modal-close" onclick="closeModal('m-post-task')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1rem;">
+        <div class="form-group" style="grid-column: 1 / -1;">
+          <label>Task Title</label>
+          <input type="text" id="p-title" placeholder="e.g., Develop Department Alumni Portal">
+        </div>
+        <div class="form-group" style="grid-column: 1 / -1;">
+          <label>Detailed Description</label>
+          <textarea id="p-desc" rows="3" placeholder="Explain what the student needs to do..."></textarea>
+        </div>
+        <div class="form-group">
+          <label>Target Semester</label>
+          <select id="p-sem">
+            <option value="1">Semester 1</option><option value="2">Semester 2</option>
+            <option value="3">Semester 3</option><option value="4" selected>Semester 4</option>
+            <option value="5">Semester 5</option><option value="6">Semester 6</option>
+            <option value="7">Semester 7</option><option value="8">Semester 8</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Deadline</label>
+          <input type="date" id="p-deadline">
+        </div>
+        <div class="form-group">
+          <label>Duration</label>
+          <input type="text" id="p-duration" placeholder="e.g., 2 weeks">
+        </div>
+        <div class="form-group">
+          <label>Required Skills (comma separated)</label>
+          <input type="text" id="p-skills" placeholder="React, Node.js, UI/UX">
+        </div>
+      </div>
+      
+      <div style="background:rgba(139, 92, 246, 0.1); border:1px solid rgba(139, 92, 246, 0.3); border-radius:8px; padding:1rem; margin-top:1rem; margin-bottom:1.5rem;">
+        <h4 style="margin-top:0; margin-bottom:1rem; color:#a78bfa; display:flex; align-items:center; gap:.5rem;"><i class="fas fa-award"></i> Badge Configuration</h4>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1rem;">
+          <div class="form-group">
+            <label>Badge Name</label>
+            <input type="text" id="p-badge-name" placeholder="e.g., Full Stack Master">
+          </div>
+          <div class="form-group">
+            <label>Category</label>
+            <select id="p-badge-cat">
+              <option value="Technical">Technical</option>
+              <option value="Research">Research</option>
+              <option value="Leadership">Leadership</option>
+              <option value="Creative">Creative</option>
+              <option value="Communication">Communication</option>
+              <option value="Analytical">Analytical</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Icon Details (Emoji)</label>
+            <select id="p-badge-icon">
+              <option value="🏆">🏆 Trophy</option>
+              <option value="⭐">⭐ Star</option>
+              <option value="🚀">🚀 Rocket</option>
+              <option value="💡">💡 Idea</option>
+              <option value="🎯">🎯 Target</option>
+              <option value="🛠️">🛠️ Tools</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Badge Color</label>
+            <input type="color" id="p-badge-color" value="#7c3aed" style="padding:0; height:45px; cursor:pointer;">
+          </div>
+        </div>
+      </div>
+      
+      <button class="btn-apply" onclick="createTask()">Post Micro-Internship</button>
+    </div>
+  </div>
+</div>
+
+<script src="../js/app.js"></script>
+<script>
+let currentUser = null;
+let currentTaskForReview = null;
+
+document.addEventListener('DOMContentLoaded', async () => {
+  currentUser = requireAuth();
+  if (!currentUser) return;
+  setupTabs();
+  
+  if (currentUser.role === 'student') {
+    switchTab('v-browse');
+  } else if (['teacher', 'hod'].includes(currentUser.role)) {
+    switchTab('v-manage');
+  } else {
+    document.body.innerHTML = '<div style="text-align:center; padding:5rem;"><h2>Access Denied</h2></div>';
+  }
+});
+
+function goBack() {
+  if (currentUser.role === 'student') window.location.href = 'student.html';
+  else if (currentUser.role === 'teacher') window.location.href = 'teacher.html';
+  else if (currentUser.role === 'hod') window.location.href = 'hod.html';
+  else window.location.href = '/';
+}
+
+function setupTabs() {
+  const container = document.getElementById('tabs-container');
+  if (currentUser.role === 'student') {
+    container.innerHTML = `
+      <button class="nav-tab active" onclick="switchTab('v-browse')"><i class="fas fa-search"></i> Browse</button>
+      <button class="nav-tab" onclick="switchTab('v-my-apps')"><i class="fas fa-clipboard-list"></i> My Apps</button>
+      <button class="nav-tab" onclick="switchTab('v-my-badges')"><i class="fas fa-medal"></i> My Badges</button>
+    `;
+  } else {
+    container.innerHTML = `
+      <button class="nav-tab active" onclick="switchTab('v-manage')"><i class="fas fa-tasks"></i> Manage Tasks</button>
+    `;
+  }
+}
+
+function switchTab(viewId) {
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  
+  event?.currentTarget?.classList.add('active');
+  document.getElementById(viewId).classList.add('active');
+  
+  if (viewId === 'v-browse') loadBrowse();
+  if (viewId === 'v-my-apps') loadMyApps();
+  if (viewId === 'v-my-badges') loadMyBadges();
+  if (viewId === 'v-manage') loadManage();
+}
+
+function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+// ============================================================================
+// STUDENT SIDE
+// ============================================================================
+
+async function loadBrowse() {
+  const cat = document.getElementById('filter-browse').value;
+  const res = await apiFetch(`/micro-internship?status=open${cat ? `&category=${cat}` : ''}`);
+  const grid = document.getElementById('browse-grid');
+  
+  if (!res.success || !res.data.length) {
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><i class="fas fa-inbox"></i><p>No open internships available in your department right now.</p></div>`;
+    return;
+  }
+  
+  grid.innerHTML = res.data.map(task => `
+    <div class="card">
+      <div class="card-header">
+        <span class="status-badge status-open">OPEN</span>
+        <span style="font-size:.8rem; color:var(--text-muted);"><i class="fas fa-users"></i> ${task.appCount}/${task.maxApplicants} apps</span>
+      </div>
+      <div class="task-title">${task.title}</div>
+      <div class="task-meta">
+        <span><i class="fas fa-user-tie"></i> Prof. ${task.postedBy?.name.split(' ')[0]}</span>
+        <span><i class="far fa-clock"></i> ${task.duration}</span>
+        ${task.deadline ? `<span><i class="far fa-calendar-alt"></i> ${new Date(task.deadline).toLocaleDateString()}</span>` : ''}
+      </div>
+      <div class="skills">${task.skills.map(s => `<span class="skill-tag">${s}</span>`).join('')}</div>
+      
+      <div class="badge-preview">
+        <div class="badge-icon-lg" style="color: ${task.badgeColor}; box-shadow: 0 0 15px ${task.badgeColor}40;">${task.badgeIcon}</div>
+        <div>
+          <div style="font-size:.75rem; color:var(--text-muted); text-transform:uppercase;">Reward</div>
+          <div style="font-weight:600; color:${task.badgeColor}">${task.badgeName}</div>
+        </div>
+      </div>
+      
+      ${task.myApp 
+        ? `<button class="btn-apply" disabled>Applied (${task.myApp.status})</button>`
+        : `<button class="btn-apply" onclick="promptApply('${task._id}', '${task.title.replace(/'/g, "\\'")}')">Apply Now</button>`
+      }
+    </div>
+  `).join('');
+}
+
+function promptApply(id, title) {
+  document.getElementById('apply-task-id').value = id;
+  document.getElementById('apply-title').textContent = title;
+  document.getElementById('apply-statement').value = '';
+  openModal('m-apply');
+}
+
+async function submitApplication() {
+  const id = document.getElementById('apply-task-id').value;
+  const statement = document.getElementById('apply-statement').value;
+  
+  const btn = document.querySelector('#m-apply .btn-apply');
+  btn.disabled = true; btn.textContent = 'Applying...';
+  
+  const res = await apiFetch(`/micro-internship/${id}/apply`, {
+    method: 'POST', body: JSON.stringify({ statement })
+  });
+  
+  btn.disabled = false; btn.textContent = 'Send Application';
+  
+  if (res.success) {
+    showToast('Application sent successfully!');
+    closeModal('m-apply');
+    loadBrowse();
+  } else {
+    showToast(res.message, 'error');
+  }
+}
+
+async function loadMyApps() {
+  const res = await apiFetch('/micro-internship/student/my-applications');
+  const grid = document.getElementById('apps-grid');
+  
+  if (!res.success || !res.data.length) {
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><i class="fas fa-clipboard"></i><p>You haven't applied to any internships yet.</p></div>`;
+    return;
+  }
+  
+  grid.innerHTML = res.data.map(app => {
+    const task = app.internship;
+    let statusClass = app.status === 'completed' ? 'status-completed' : (app.status === 'accepted' ? 'status-progress' : 'status-open');
+    if (app.status === 'rejected') statusClass = '';
+    
+    return `
+    <div class="card">
+      <div class="card-header">
+        <span class="status-badge ${statusClass}">${app.status.toUpperCase()}</span>
+        <span style="font-size:.8rem; color:var(--text-muted);">${new Date(app.appliedAt).toLocaleDateString()}</span>
+      </div>
+      <div class="task-title">${task.title}</div>
+      ${app.teacherFeedback ? `<div style="padding:1rem; background:rgba(255,255,255,.05); border-radius:8px; border-left:3px solid #8b5cf6; margin:1rem 0; font-size:.85rem;"><strong>Teacher Note:</strong><br/>${app.teacherFeedback}</div>` : ''}
+      
+      <div style="margin-top:auto;">
+        ${app.status === 'accepted' && !app.submission ? `
+          <button class="btn-apply" onclick="promptSubmitWork('${app._id}')">Submit Work</button>
+        ` : app.status === 'accepted' && app.submission ? `
+          <div style="text-align:center; padding:.5rem; color:var(--warning); font-size:.85rem; background:rgba(245, 158, 11, 0.1); border-radius:6px;">Work Submitted. Awaiting Review.</div>
+        ` : app.status === 'completed' ? `
+          <div style="text-align:center; padding:.5rem; color:var(--success); font-size:.85rem; background:rgba(16, 185, 129, 0.1); border-radius:6px;"><i class="fas fa-check-circle"></i> Completed! Badge Earned.</div>
+        ` : ''}
+      </div>
+    </div>
+  `}).join('');
+}
+
+function promptSubmitWork(appId) {
+  document.getElementById('submit-app-id').value = appId;
+  document.getElementById('submit-text').value = '';
+  openModal('m-submit-work');
+}
+
+async function submitWork() {
+  const id = document.getElementById('submit-app-id').value;
+  const submission = document.getElementById('submit-text').value;
+  if (!submission) return showToast('Please provide submission details', 'error');
+  
+  const res = await apiFetch(`/micro-internship/application/${id}/submit`, {
+    method: 'PUT', body: JSON.stringify({ submission })
+  });
+  
+  if (res.success) {
+    showToast('Work submitted successfully!');
+    closeModal('m-submit-work');
+    loadMyApps();
+  } else {
+    showToast(res.message, 'error');
+  }
+}
+
+async function loadMyBadges() {
+  const res = await apiFetch('/micro-internship/badges/my');
+  const grid = document.getElementById('badges-grid');
+  
+  if (!res.success || !res.data.length) {
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><i class="fas fa-medal"></i><p>Complete micro-internships to earn your first badge!</p><button class="btn-apply" style="width:auto; margin-top:1rem; padding:.5rem 1.5rem;" onclick="switchTab('v-browse')">Browse Tasks</button></div>`;
+    return;
+  }
+  
+  grid.innerHTML = res.data.map(badge => `
+    <div class="digital-badge" style="--b-color: ${badge.color};">
+      <div class="b-icon-wrap"><div class="b-icon-inner">${badge.icon}</div></div>
+      <h3 style="color:${badge.color}; margin-bottom:.5rem;">${badge.name}</h3>
+      <div style="font-size:.75rem; color:rgba(255,255,255,.6); margin-bottom:.5rem; text-transform:uppercase; letter-spacing:1px;">${badge.category}</div>
+      <div style="font-size:.8rem; color:var(--text-muted); margin-bottom:1rem; min-height:40px;">${badge.description}</div>
+      <div style="padding-top:1rem; border-top:1px dashed var(--border); font-size:.75rem; color:var(--text-muted); text-align:left;">
+        <div><strong>Date:</strong> ${new Date(badge.awardedAt).toLocaleDateString()}</div>
+        <div><strong>Issuer:</strong> Prof. ${badge.awardedBy?.name.split(' ')[0] || 'Teacher'}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+
+// ============================================================================
+// TEACHER SIDE
+// ============================================================================
+
+async function createTask() {
+  const body = {
+    title: document.getElementById('p-title').value,
+    description: document.getElementById('p-desc').value,
+    semester: document.getElementById('p-sem').value,
+    deadline: document.getElementById('p-deadline').value,
+    duration: document.getElementById('p-duration').value,
+    skills: document.getElementById('p-skills').value,
+    badgeName: document.getElementById('p-badge-name').value,
+    badgeCategory: document.getElementById('p-badge-cat').value,
+    badgeIcon: document.getElementById('p-badge-icon').value,
+    badgeColor: document.getElementById('p-badge-color').value
+  };
+  
+  if (!body.title || !body.description || !body.badgeName) return showToast('Please fill title, desc, and badge details', 'error');
+  
+  const btn = document.querySelector('#m-post-task .btn-apply');
+  btn.disabled = true; btn.textContent = 'Posting...';
+  
+  const res = await apiFetch('/micro-internship', { method: 'POST', body: JSON.stringify(body) });
+  
+  btn.disabled = false; btn.textContent = 'Post Micro-Internship';
+  
+  if (res.success) {
+    showToast('Task posted! Students will be notified.');
+    closeModal('m-post-task');
+    // Clear form
+    ['p-title','p-desc','p-deadline','p-duration','p-skills','p-badge-name'].forEach(id => document.getElementById(id).value = '');
+    loadManage();
+  } else {
+    showToast(res.message, 'error');
+  }
+}
+
+async function loadManage() {
+  const res = await apiFetch('/micro-internship/my-posted');
+  const grid = document.getElementById('manage-grid');
+  
+  if (!res.success || !res.data.length) {
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1"><i class="fas fa-tasks"></i><p>You haven't posted any tasks yet.</p></div>`;
+    return;
+  }
+  
+  grid.innerHTML = res.data.map(task => `
+    <div class="card">
+      <div class="card-header">
+        <span class="status-badge ${task.status === 'open' ? 'status-open' : task.status === 'completed' ? 'status-completed' : 'status-progress'}">${task.status.replace('_', ' ').toUpperCase()}</span>
+        <span style="font-size:.8rem; color:var(--text-muted);"><i class="fas fa-users"></i> ${task.appCount} apps</span>
+      </div>
+      <div class="task-title">${task.title}</div>
+      <div class="task-meta">
+        <span>Sem ${task.semester}</span>
+        ${task.deadline ? `<span><i class="far fa-calendar-alt"></i> ${new Date(task.deadline).toLocaleDateString()}</span>` : ''}
+      </div>
+      
+      <div style="display:flex; align-items:center; gap:.5rem; margin-top:auto; font-size:.85rem; padding: .5rem; background:rgba(0,0,0,.2); border-radius:6px; margin-bottom:1rem;">
+        <span>${task.badgeIcon}</span> <strong style="color:${task.badgeColor}">${task.badgeName}</strong>
+      </div>
+      
+      <button class="btn-outline" onclick="openReview('${task._id}')">Manage & Review Apps →</button>
+    </div>
+  `).join('');
+}
+
+async function openReview(taskId) {
+  switchTab('v-review');
+  currentTaskForReview = taskId;
+  
+  const tbody = document.getElementById('review-tbody');
+  tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:2rem;"><i class="fas fa-spinner fa-spin"></i> Loading...</td></tr>`;
+  
+  const [taskRes, appsRes] = await Promise.all([
+    apiFetch(`/micro-internship/${taskId}`),
+    apiFetch(`/micro-internship/${taskId}/applications`)
+  ]);
+  
+  if (!taskRes.success) return;
+  document.getElementById('review-title').textContent = taskRes.data.title;
+  
+  if (!appsRes.success || !appsRes.data.length) {
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:2rem; color:var(--text-muted);">No applications yet.</td></tr>`;
+    return;
+  }
+  
+  tbody.innerHTML = appsRes.data.map(app => {
+    const s = app.student;
+    return `
+      <tr style="border-bottom:1px solid var(--border);">
+        <td style="padding:1rem;">
+          <div style="font-weight:600; color:var(--text);">${s.name}</div>
+          <div style="font-size:.75rem; color:var(--text-muted); font-family:monospace;">${s.rollNumber} | Sem ${s.semester}</div>
+        </td>
+        <td style="padding:1rem; font-size:.85rem; color:var(--text-muted);">${new Date(app.appliedAt).toLocaleDateString()}</td>
+        <td style="padding:1rem;">
+          <span class="status-badge ${app.status === 'completed' ? 'status-completed' : app.status === 'accepted' ? 'status-progress' : app.status === 'rejected' ? '' : 'status-open'}">${app.status.toUpperCase()}</span>
+        </td>
+        <td style="padding:1rem; max-width:200px;">
+          ${app.submission ? `<a href="${app.submission}" target="_blank" style="color:var(--primary); font-size:.85rem; overflow:hidden; text-overflow:ellipsis; display:block; white-space:nowrap;">View Submission <i class="fas fa-external-link-alt"></i></a>` : '<span style="color:var(--text-muted); font-size:.85rem;">—</span>'}
+        </td>
+        <td style="padding:1rem; text-align:right;">
+          ${app.status === 'pending' ? `
+            <div style="display:flex; gap:.5rem; justify-content:flex-end;">
+              <button class="btn-outline" style="padding:.4rem .8rem; font-size:.8rem; border-color:var(--success); color:var(--success);" onclick="updateAppStatus('${app._id}', 'accepted')">Accept</button>
+              <button class="btn-outline" style="padding:.4rem .8rem; font-size:.8rem; border-color:var(--danger); color:var(--danger);" onclick="updateAppStatus('${app._id}', 'rejected')">Reject</button>
+            </div>
+          ` : app.status === 'accepted' && app.submission && !app.badgeAwarded ? `
+            <button class="btn-apply" style="padding:.4rem .8rem; font-size:.8rem; width:auto; background:var(--success);" onclick="awardBadge('${app._id}')"><i class="fas fa-award"></i> Verify & Award Badge</button>
+          ` : app.status === 'completed' ? `
+            <span style="color:var(--success); font-size:.85rem;"><i class="fas fa-check-circle"></i> Badge Sent</span>
+          ` : '<span style="color:var(--text-muted); font-size:.85rem;">—</span>'}
+        </td>
+      </tr>
+      ${app.statement ? `
+        <tr style="border-bottom:2px solid var(--bg); background:rgba(255,255,255,.02);">
+          <td colspan="5" style="padding:1rem; padding-top:0;">
+            <div style="font-size:.8rem; color:var(--text-muted);"><strong>Statement:</strong> ${app.statement}</div>
+          </td>
+        </tr>
+      ` : ''}
+    `;
+  }).join('');
+}
+
+async function updateAppStatus(appId, status) {
+  const res = await apiFetch(`/micro-internship/application/${appId}/status`, {
+    method: 'PUT', body: JSON.stringify({ status })
+  });
+  if (res.success) {
+    showToast(`Application ${status}`);
+    openReview(currentTaskForReview);
+  } else {
+    showToast(res.message, 'error');
+  }
+}
+
+async function awardBadge(appId) {
+  if (!confirm("Are you sure you want to verify this work and award the badge? This cannot be undone.")) return;
+  
+  const res = await apiFetch(`/micro-internship/application/${appId}/complete`, {
+    method: 'PUT', body: JSON.stringify({ feedback: 'Great job!' })
+  });
+  if (res.success) {
+    showToast('Badge awarded successfully! 🎉');
+    openReview(currentTaskForReview);
+  } else {
+    showToast(res.message, 'error');
+  }
+}
+
+</script>
+</body>
+</html>

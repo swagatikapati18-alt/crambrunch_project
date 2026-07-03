@@ -1,0 +1,975 @@
+﻿
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Student Dashboard — CRAMBRUNCH</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="../css/main.css"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <img src="../assets/logo.jpg" alt="Logo" style="height:40px;width:auto;margin-right:10px;border-radius:8px;"/>
+    <span>Student Portal</span>
+  </div>
+  <div class="sidebar-user">
+    <div class="user-avatar">ST</div>
+    <div class="user-info">
+      <div class="name user-name">Student</div>
+      <div class="role-badge user-role">Student</div>
+    </div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section">
+      <div class="nav-section-title">Overview</div>
+      <a class="nav-item active" data-view="v-home" onclick="switchView('v-home')">
+        <span class="icon">🏠</span><span class="label">Dashboard</span>
+      </a>
+      <a class="nav-item" data-view="v-profile" onclick="switchView('v-profile')">
+        <span class="icon">👤</span><span class="label">My Profile</span>
+      </a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-title">Academics</div>
+      <a class="nav-item" data-view="v-attendance" onclick="switchView('v-attendance')">
+        <span class="icon">📅</span><span class="label">Attendance</span>
+      </a>
+      <a class="nav-item" data-view="v-marks" onclick="switchView('v-marks')">
+        <span class="icon">📊</span><span class="label">My Marks</span>
+      </a>
+      <a class="nav-item" data-view="v-timetable" onclick="switchView('v-timetable')">
+        <span class="icon">🗓️</span><span class="label">Timetable</span>
+      </a>
+      <a class="nav-item" data-view="v-materials" onclick="switchView('v-materials')">
+        <span class="icon">📁</span><span class="label">Study Materials</span>
+      </a>
+      <a class="nav-item" data-view="v-library" onclick="switchView('v-library')">
+        <span class="icon">📚</span><span class="label">Library</span>
+      </a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-title">Campus</div>
+      <a class="nav-item" data-view="v-grievances" onclick="switchView('v-grievances')">
+        <span class="icon">📢</span><span class="label">Grievances</span>
+      </a>
+      <a class="nav-item" data-view="v-election" onclick="switchView('v-election')">
+        <span class="icon">🗳️</span><span class="label">CR Selection</span>
+      </a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-title">Opportunities</div>
+      <a class="nav-item" href="skillhub.html"><span class="icon">⚡</span><span class="label">SkillHub Portal</span></a>
+    </div>
+    <div class="nav-section">
+      <a class="nav-item" data-view="v-feedback" onclick="switchView('v-feedback')">
+        <span class="icon">💬</span><span class="label">Feedback</span>
+      </a>
+    </div>
+  </nav>
+  <div class="sidebar-bottom">
+    <button class="logout-btn" data-logout><span>🚪</span> Logout</button>
+  </div>
+</aside>
+
+<!-- NOTIFICATION PANEL -->
+<div class="notif-panel">
+  <div class="notif-panel-header">
+    <h3>🔔 Notifications</h3>
+    <div style="display:flex;gap:.5rem;align-items:center">
+      <button class="btn btn-xs btn-secondary" onclick="apiFetch('/notifications/read-all',{method:'PUT'}).then(loadNotifications)">Mark all read</button>
+      <button class="btn btn-xs btn-danger" onclick="toggleNotifPanel()" title="Close Notifications">✕</button>
+    </div>
+  </div>
+  <div class="notif-list"></div>
+</div>
+
+<!-- MAIN -->
+<main class="main">
+  <div class="topbar">
+    <div style="display:flex;align-items:center;gap:1rem">
+      <button class="sidebar-toggle btn btn-secondary btn-sm" style="display:none">☰</button>
+      <div class="page-title">Dashboard</div>
+    </div>
+    <div class="topbar-actions">
+      <button class="notif-btn" onclick="toggleNotifPanel()">
+        🔔 <span class="notif-dot" style="display:none">0</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- HOME -->
+    <div class="view active" id="v-home">
+      <div style="margin-bottom:1.5rem">
+        <h2 style="font-family:var(--font-head);font-size:1.4rem;font-weight:700">Good day, <span id="student-name">Student</span> <span id="student-cr-badge" style="vertical-align:middle;margin-left:.5rem"></span> 👋</h2>
+        <p style="color:var(--text-muted);font-size:.875rem;margin-top:.25rem">Here's your academic snapshot</p>
+      </div>
+      <div class="stats-grid" id="home-stats">
+        <div class="stat-card" onclick="switchView('v-attendance')" style="cursor:pointer" title="View Attendance"><div class="s-icon">📅</div><div class="s-val" id="h-att">—</div><div class="s-lbl">Avg Attendance</div></div>
+        <div class="stat-card" onclick="switchView('v-marks')" style="cursor:pointer" title="View Marks"><div class="s-icon">📊</div><div class="s-val" id="h-marks">—</div><div class="s-lbl">Avg Marks %</div></div>
+        <div class="stat-card" onclick="switchView('v-skillhub')" style="cursor:pointer" title="View SkillHub"><div class="s-icon">🏅</div><div class="s-val" id="h-badges">0</div><div class="s-lbl">Badges Earned</div></div>
+        <div class="stat-card" onclick="switchView('v-grievances')" style="cursor:pointer" title="View Grievances"><div class="s-icon">📢</div><div class="s-val" id="h-griev">0</div><div class="s-lbl">Open Grievances</div></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem">
+        <div class="card">
+          <div class="card-header"><h3>Attendance by Subject</h3></div>
+          <div class="card-body">
+            <div class="chart-wrap"><canvas id="attChart"></canvas></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><h3>Performance Overview</h3></div>
+          <div class="card-body">
+            <div class="chart-wrap"><canvas id="marksChart"></canvas></div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><h3>🏅 My Badges</h3></div>
+        <div class="card-body" id="badges-list">
+          <div class="empty-state"><div class="icon">🏅</div><p>No badges yet — complete SkillHub tasks to earn them!</p></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><h3>📚 My Course Structure</h3></div>
+        <div class="card-body" id="my-course-structure">
+          <div class="empty-state"><div class="icon">📚</div><p>Loading course details…</p></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PROFILE -->
+    <div class="view" id="v-profile">
+      <div class="card">
+        <div class="card-header"><h3>👤 My Profile & Settings</h3></div>
+        <div class="card-body">
+          <div class="form-row">
+            <div class="form-group"><label>Full Name</label><input type="text" id="prof-name"/></div>
+            <div class="form-group"><label>Email (Read-only)</label><input type="email" id="prof-email" disabled style="background:var(--surface2)"/></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>Roll Number (Read-only)</label><input type="text" id="prof-roll" disabled style="background:var(--surface2)"/></div>
+            <div class="form-group"><label>Department (Read-only)</label><input type="text" id="prof-dept" disabled style="background:var(--surface2)"/></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>Semester</label><input type="number" id="prof-sem"/></div>
+            <div class="form-group"><label>Phone Number</label><input type="tel" id="prof-phone"/></div>
+          </div>
+          <button class="btn btn-primary" onclick="updateProfile()" style="margin-top:1rem">Save Changes</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ATTENDANCE -->
+    <div class="view" id="v-attendance">
+      <div class="card">
+        <div class="card-header"><h3>📅 Attendance Summary</h3><button class="btn btn-primary btn-sm" onclick="loadAttendance()">🔄 Refresh</button></div>
+        <div class="card-body">
+          <div class="att-grid" id="att-grid">
+            <div class="empty-state"><div class="icon">📅</div><p>Loading attendance…</p></div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><h3>🎯 75% Predictor</h3></div>
+        <div class="card-body">
+          <p style="color:var(--text-muted);font-size:.875rem;margin-bottom:1.5rem">Find out how many more classes you can miss while staying eligible for exams.</p>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Subject</label>
+              <select id="pred-subject"><option value="">Select subject…</option></select>
+            </div>
+            <div class="form-group">
+              <label>Total Planned Classes (Semester)</label>
+              <input type="number" id="pred-total" value="60" min="1"/>
+            </div>
+          </div>
+          <button class="btn btn-primary" onclick="runPredictor()">Calculate</button>
+          <div id="pred-result" style="margin-top:1.5rem;display:none">
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1rem;margin-bottom:1.25rem">
+              <div class="stat-card"><div class="s-icon">📊</div><div class="s-val" id="pr-pct" style="font-size:1.5rem">—</div><div class="s-lbl">Current %</div></div>
+              <div class="stat-card"><div class="s-icon">🚫</div><div class="s-val" id="pr-miss" style="font-size:1.5rem;color:var(--warning)">—</div><div class="s-lbl">Can Still Miss</div></div>
+              <div class="stat-card"><div class="s-icon">📌</div><div class="s-val" id="pr-must" style="font-size:1.5rem;color:var(--danger)">—</div><div class="s-lbl">Must Attend</div></div>
+              <div class="stat-card" id="pr-status-card"><div class="s-icon" id="pr-icon">—</div><div class="s-val" id="pr-status" style="font-size:1rem">—</div><div class="s-lbl">Exam Eligibility</div></div>
+            </div>
+            <!-- Actionable message banner -->
+            <div id="pr-message-box" style="padding:1rem 1.25rem;border-radius:10px;display:flex;align-items:center;gap:.75rem;font-size:.9rem;font-weight:500;border:1px solid transparent">
+              <span id="pr-msg-icon" style="font-size:1.4rem">💬</span>
+              <span id="pr-message"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MARKS -->
+    <div class="view" id="v-marks">
+      <div class="card">
+        <div class="card-header">
+          <h3>📊 My Academic Performance</h3>
+          <select id="marks-sem-filter" onchange="loadMarks()" class="btn btn-secondary btn-sm">
+            <option value="">All Semesters</option>
+            <option value="1">Semester 1</option>
+            <option value="2">Semester 2</option>
+            <option value="3">Semester 3</option>
+            <option value="4" selected>Semester 4</option>
+            <option value="5">Semester 5</option>
+            <option value="6">Semester 6</option>
+            <option value="7">Semester 7</option>
+            <option value="8">Semester 8</option>
+          </select>
+        </div>
+        <div class="card-body">
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Subject</th><th>Exam Type</th><th>Marks</th><th>Total</th><th>%</th><th>Remarks</th></tr></thead>
+              <tbody id="marks-tbody"><tr><td colspan="6" style="text-align:center;color:var(--text-muted)">Loading…</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TIMETABLE -->
+    <div class="view" id="v-timetable">
+      <div class="card">
+        <div class="card-header"><h3>🗓️ Weekly Timetable</h3></div>
+        <div class="card-body">
+          <div style="overflow-x:auto"><table class="timetable" id="tt-table"></table></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MATERIALS -->
+    <div class="view" id="v-materials">
+      <div class="card">
+        <div class="card-header">
+          <h3>📁 Study Materials</h3>
+          <div style="display:flex;gap:.5rem">
+            <select id="mat-filter-type" class="btn btn-secondary btn-sm" onchange="loadMaterials()">
+              <option value="">All Types</option>
+              <option value="notes">Notes</option>
+              <option value="assignment">Assignment</option>
+              <option value="pyq">PYQ</option>
+              <option value="circular">Circular</option>
+            </select>
+          </div>
+        </div>
+        <div class="card-body">
+          <div id="materials-list">
+            <div class="empty-state"><div class="icon">📁</div><p>Loading materials…</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- LIBRARY -->
+    <div class="view" id="v-library">
+      <div class="card">
+        <div class="card-header">
+          <h3>📚 My Issued Books</h3>
+        </div>
+        <div class="card-body">
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Book Title</th><th>Book ID / ISBN</th><th>Issued On</th><th>Due Date</th><th>Status</th><th>Returned On</th><th>Fine</th></tr></thead>
+              <tbody id="library-tbody"><tr><td colspan="7" style="text-align:center;color:var(--text-muted)">Loading…</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- GRIEVANCES -->
+    <div class="view" id="v-grievances">
+      <div class="card" style="margin-bottom:1.5rem">
+        <div class="card-header">
+          <h3>📢 Submit a Grievance</h3>
+        </div>
+        <div class="card-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Category</label>
+              <select id="griev-cat">
+                <option value="infrastructure">Infrastructure</option>
+                <option value="academic">Academic</option>
+                <option value="faculty">Faculty</option>
+                <option value="administration">Administration</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Submit Anonymously?</label>
+              <select id="griev-anon">
+                <option value="false">No — with my identity</option>
+                <option value="true">Yes — anonymously 🔒</option>
+              </select>
+            </div>
+          </div>
+          <p style="color:var(--text-muted);font-size:.82rem;margin:.25rem 0 1rem">Anonymous tickets stay hidden from department handling. If the issue remains unresolved and is escalated, higher authority can securely view your identity to take action.</p>
+          <div class="form-group"><label>Title</label><input type="text" id="griev-title" placeholder="Brief description of the issue"/></div>
+          <div class="form-group"><label>Description</label><textarea id="griev-desc" placeholder="Describe the issue in detail…"></textarea></div>
+          <button class="btn btn-primary" onclick="submitGrievance()">Submit Grievance</button>
+        </div>
+      </div>
+      <div class="card" style="margin-bottom:1.5rem; background:linear-gradient(135deg, rgba(0,229,255,0.03), rgba(124,58,237,0.03))">
+        <div class="card-body" style="padding:1.5rem">
+          <h4 style="margin-bottom:1rem; color:var(--accent)">🛡️ Support & Escalation Policy</h4>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.5rem">
+            <div>
+              <div style="font-weight:700; font-size:.9rem; margin-bottom:.5rem">Level 1: Departmental (HOD)</div>
+              <p style="font-size:.8rem; color:var(--text-muted)">Initial review within 2-3 working days. Anonymous identities are <strong>hidden</strong> from the HOD.</p>
+            </div>
+            <div>
+              <div style="font-weight:700; font-size:.9rem; margin-bottom:.5rem; color:var(--danger)">Level 2: Management (Super Admin)</div>
+              <p style="font-size:.8rem; color:var(--text-muted)">If unresolved or complex, tickets are escalated. Identity is revealed to Management for final investigation.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><h3>My Grievances</h3></div>
+        <div class="card-body">
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Ticket ID</th><th>Title</th><th>Support Level</th><th>Status</th><th>Submitted</th></tr></thead>
+              <tbody id="griev-tbody"><tr><td colspan="5" style="text-align:center;color:var(--text-muted)">Loading…</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SKILLHUB -->
+    <div class="view" id="v-skillhub">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;flex-wrap:wrap;gap:1rem">
+        <div>
+          <h2 style="font-family:var(--font-head);font-size:1.3rem;font-weight:700">⚡ SkillHub</h2>
+          <p style="color:var(--text-muted);font-size:.875rem">Exchange skills & earn micro-internship badges</p>
+        </div>
+        <button class="btn btn-primary" onclick="openModal('skill-modal')">+ Post Task / Skill</button>
+      </div>
+      <div style="display:flex;gap:.75rem;margin-bottom:1.5rem;flex-wrap:wrap">
+        <button class="btn btn-secondary btn-sm" onclick="loadSkillHub('')">All</button>
+        <button class="btn btn-secondary btn-sm" onclick="loadSkillHub('skill_barter')">Skill Barter</button>
+        <button class="btn btn-secondary btn-sm" onclick="loadSkillHub('micro_internship')">Micro-Internships</button>
+      </div>
+      <div class="skill-grid" id="skill-grid">
+        <div class="empty-state" style="grid-column:1/-1"><div class="icon">⚡</div><p>Loading SkillHub…</p></div>
+      </div>
+    </div>
+
+    <!-- FEEDBACK -->
+    <div class="view" id="v-feedback">
+      <div class="card">
+        <div class="card-header"><h3>💬 Submit Teacher Feedback</h3></div>
+        <div class="card-body">
+          <p style="color:var(--text-muted);font-size:.875rem;margin-bottom:1.5rem">Your feedback is confidential and helps improve teaching quality.</p>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Teacher</label>
+              <select id="fb-teacher"><option value="">Select teacher…</option></select>
+            </div>
+            <div class="form-group">
+              <label>Subject</label>
+              <input type="text" id="fb-subject" placeholder="Subject taught by this teacher"/>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Rating (1–5)</label>
+            <div style="display:flex;gap:.5rem" id="star-rating">
+              <span class="star" data-v="1" style="font-size:1.8rem;cursor:pointer;opacity:.4">⭐</span>
+              <span class="star" data-v="2" style="font-size:1.8rem;cursor:pointer;opacity:.4">⭐</span>
+              <span class="star" data-v="3" style="font-size:1.8rem;cursor:pointer;opacity:.4">⭐</span>
+              <span class="star" data-v="4" style="font-size:1.8rem;cursor:pointer;opacity:.4">⭐</span>
+              <span class="star" data-v="5" style="font-size:1.8rem;cursor:pointer;opacity:.4">⭐</span>
+            </div>
+            <input type="hidden" id="fb-rating" value="0"/>
+          </div>
+          <div class="form-group"><label>Comments</label><textarea id="fb-comment" placeholder="Your honest feedback…"></textarea></div>
+          <button class="btn btn-primary" onclick="submitFeedback()">Submit Feedback</button>
+          <hr style="margin:1.25rem 0;border:none;border-top:1px solid var(--border)"/>
+          <h4 style="margin:0 0 0.75rem">💬 View Feedback for Teacher</h4>
+          <div id="fb-list"><div class="empty-state"><div class="icon">💬</div><p>Select a teacher to view feedback.</p></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CR SELECTION -->
+    <div class="view" id="v-election">
+      <div id="election-container">
+        <div class="empty-state"><div class="icon">🗳️</div><p>No active CR elections in your semester right now.</p></div>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</main>
+
+<!-- Skill Post Modal -->
+<div class="modal-backdrop" id="skill-modal">
+  <div class="modal-box">
+    <button class="modal-close-btn" onclick="closeModal('skill-modal')">✕</button>
+    <h3>Post a Skill / Task</h3>
+    <div class="form-group">
+      <label>Type</label>
+      <select id="sk-type">
+        <option value="skill_barter">Skill Barter</option>
+        <option value="micro_internship">Micro-Internship</option>
+      </select>
+    </div>
+    <div class="form-group"><label>Title</label><input type="text" id="sk-title" placeholder="e.g. Python basics for UI design tips"/></div>
+    <div class="form-group"><label>Description</label><textarea id="sk-desc" placeholder="What you're offering and what you need…"></textarea></div>
+    <div class="form-row">
+      <div class="form-group"><label>Skill You Offer</label><input type="text" id="sk-offer" placeholder="e.g. Python"/></div>
+      <div class="form-group"><label>Skill You Want</label><input type="text" id="sk-want" placeholder="e.g. UI Design"/></div>
+    </div>
+    <button class="btn btn-primary" onclick="postSkill()">Post</button>
+  </div>
+</div>
+
+<script src="../js/app.js"></script>
+<script>
+const user = requireAuth(['student']);
+if (user) {
+  initUserUI(user);
+  document.getElementById('student-name').textContent = user.name.split(' ')[0];
+  loadAll();
+  loadNotifications();
+  setInterval(loadNotifications, 30000);
+}
+
+// Default view nav labels
+document.querySelectorAll('.nav-item').forEach(el => {
+  el.addEventListener('click', () => {
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    el.classList.add('active');
+    const title = el.querySelector('.label')?.textContent;
+    if (title) document.querySelector('.page-title').textContent = title;
+  });
+});
+
+async function loadAll() {
+  await Promise.all([loadHomeStats(), loadAttendance(), loadMarks(), loadTimetable(), loadMaterials(), loadGrievances(), loadSkillHub(), loadTeachersForFeedback(), loadMyCourseStructure(), loadProfile(), loadLibrary(), loadElections()]);
+}
+
+let attData = [];
+async function loadAttendance() {
+  const data = await apiFetch(`/attendance/summary/${user.id}`);
+  if (!data.success) return;
+  attData = data.data;
+  // Update predictor dropdown
+  const sel = document.getElementById('pred-subject');
+  sel.innerHTML = '<option value="">Select subject…</option>' + data.data.map(s => `<option value="${s.subject}">${s.subject}</option>`).join('');
+
+  // Render att grid
+  const grid = document.getElementById('att-grid');
+  if (!data.data.length) {
+    renderAttChart([]);
+    document.getElementById('h-att').textContent = '-';
+    grid.innerHTML = '<div class="empty-state"><div class="icon">📅</div><p>No attendance records yet.</p></div>'; return;
+  }
+  grid.innerHTML = data.data.map(s => `
+    <div class="att-subject">
+      <div class="subj-name">${s.subject}</div>
+      <div class="att-pct ${pctClass(s.percentage)}">${s.percentage}%</div>
+      <div class="progress-bar" style="margin-top:.5rem"><div class="progress-fill ${pctClass(s.percentage)}" style="width:${s.percentage}%"></div></div>
+      <div style="font-size:.75rem;color:var(--text-muted);margin-top:.4rem">${s.present}/${s.total} classes</div>
+    </div>`).join('');
+
+  // Chart
+  renderAttChart(data.data);
+  // Update home stat
+  const avg = data.data.length ? (data.data.reduce((s,d) => s+d.percentage,0)/data.data.length).toFixed(1) : '—';
+  document.getElementById('h-att').textContent = avg + '%';
+}
+
+function renderAttChart(data) {
+  const ctx = document.getElementById('attChart');
+  if (!ctx) return;
+  if (window._attChart) window._attChart.destroy();
+  const hasData = data.length > 0;
+  window._attChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: hasData ? data.map(d => d.subject) : ['No records'],
+      datasets: [{ label: 'Attendance %', data: hasData ? data.map(d => d.percentage) : [0], backgroundColor: hasData ? data.map(d => d.percentage>=75?'rgba(0,200,150,.5)':d.percentage>=60?'rgba(245,158,11,.5)':'rgba(239,68,68,.5)') : ['rgba(122,155,181,.18)'], borderRadius:6 }]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false} },
+      scales:{ y:{min:0,max:100,ticks:{color:'#7a9bb5'},grid:{color:'rgba(0,229,255,.05)'}}, x:{ticks:{color:'#7a9bb5'},grid:{display:false}} }
+    }
+  });
+}
+
+// Load and render the course structure for the student's enrolled course
+async function loadMyCourseStructure() {
+  const container = document.getElementById('my-course-structure');
+  container.innerHTML = '<div class="empty-state"><div class="icon">📚</div><p>Loading course details…</p></div>';
+  const data = await apiFetch('/departments/my-department');
+  if (!data.success || !data.data) { container.innerHTML = '<div class="empty-state"><div class="icon">⚠️</div><p>Unable to load course info.</p></div>'; return; }
+  const dept = data.data;
+  const courseName = user.course;
+  const course = (dept.courses || []).find(c => c.name === courseName) || null;
+  if (!course) { container.innerHTML = `<div class="empty-state"><div class="icon">📚</div><p>Your course information is not available.</p></div>`; return; }
+
+  // Render nested years/semesters if present, otherwise flat subjects
+  let html = '';
+  if (Array.isArray(course.years) && course.years.length) {
+    html = course.years.map(y => {
+      const sems = (y.semesters || []).map(s => {
+        const subs = (s.subjects||[]).map(sub => `<div style="padding:.25rem .5rem;border-radius:6px;background:var(--surface2);display:inline-block;margin-right:.4rem;margin-bottom:.4rem">${sub}</div>`).join('');
+        return `<div style="margin-bottom:.5rem"><strong>Semester ${s.semNumber}</strong><div style="margin-top:.35rem">${subs || '<span style="color:var(--text-muted)">No subjects</span>'}</div></div>`;
+      }).join('');
+      return `<div style="margin-bottom:.8rem"><div style="font-weight:700">Year ${y.yearNumber}</div>${sems}</div>`;
+    }).join('');
+  } else {
+    html = (course.subjects || []).map(s => `<div style="padding:.25rem .5rem;border-radius:6px;background:var(--surface2);display:inline-block;margin-right:.4rem;margin-bottom:.4rem">${s}</div>`).join('');
+  }
+
+  // highlight current semester
+  container.innerHTML = `<div><div style="font-weight:700;margin-bottom:.5rem">${course.name} • ${course.durationYears} years</div><div>${html}</div><div style="margin-top:.6rem;color:var(--text-muted)">Your semester: ${user.semester || '—'}</div></div>`;
+}
+
+async function loadMarks() {
+  const sem = document.getElementById('marks-sem-filter')?.value || '';
+  const data = await apiFetch(`/marks/student/${user.id}${sem ? `?semester=${sem}` : ''}`);
+  if (!data.success) return;
+  const tbody = document.getElementById('marks-tbody');
+  if (!data.data.length) { 
+    renderMarksChart([]);
+    document.getElementById('h-marks').textContent = '-';
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--text-muted)">No marks recorded for ${sem ? 'Semester ' + sem : 'any semester'} yet.</td></tr>`; 
+    return; 
+  }
+  tbody.innerHTML = data.data.map(m => {
+    const pct = ((m.marksObtained/m.totalMarks)*100).toFixed(0);
+    return `<tr>
+      <td>${m.subject}</td>
+      <td><span class="badge badge-info">${m.examType}</span></td>
+      <td style="font-weight:600">${m.marksObtained}</td>
+      <td>${m.totalMarks}</td>
+      <td><span class="badge badge-${pct>=75?'success':pct>=50?'warning':'danger'}">${pct}%</span></td>
+      <td style="color:var(--text-muted);font-size:.8rem">${m.remarks||'—'}</td>
+    </tr>`;
+  }).join('');
+  // Update home stat
+  const avg = (data.data.reduce((s,m)=>s+(m.marksObtained/m.totalMarks)*100,0)/data.data.length).toFixed(1);
+  document.getElementById('h-marks').textContent = avg+'%';
+  renderMarksChart(data.data);
+}
+
+function renderMarksChart(data) {
+  const ctx2 = document.getElementById('marksChart');
+  if (ctx2 && window._mChart) window._mChart.destroy();
+  const hasData = data.length > 0;
+  if (ctx2) window._mChart = new Chart(ctx2, {
+    type:'radar',
+    data:{
+      labels:hasData ? data.map(m=>m.subject) : ['No marks'],
+      datasets:[{label:'Score %',data:hasData ? data.map(m=>((m.marksObtained/m.totalMarks)*100).toFixed(0)) : [0],fill:true,backgroundColor:'rgba(124,58,237,.15)',borderColor:'rgba(124,58,237,.6)',pointBackgroundColor:'#7c3aed'}]
+    },
+    options:{responsive:true,maintainAspectRatio:false,scales:{r:{ticks:{color:'#7a9bb5',backdropColor:'transparent'},grid:{color:'rgba(0,229,255,.07)'},pointLabels:{color:'#7a9bb5'}}},plugins:{legend:{display:false}}}
+  });
+}
+
+async function loadHomeStats() {
+  const [meData, badgesData, grievancesData] = await Promise.all([
+    apiFetch('/auth/me'),
+    apiFetch('/micro-internship/badges/my'),
+    apiFetch('/grievances/mine')
+  ]);
+
+  if (meData.success && meData.user) {
+    document.getElementById('student-name').textContent = meData.user.name.split(' ')[0];
+  }
+
+  if (badgesData.success && badgesData.data) {
+    document.getElementById('h-badges').textContent = badgesData.data.length;
+    const bl = document.getElementById('badges-list');
+    if (badgesData.data.length) {
+      bl.innerHTML = `<div style="display:flex;flex-wrap:wrap;gap:.75rem">${badgesData.data.map(b=>`
+        <div class="badge-item" style="background:var(--surface2);border:1px solid ${b.color}40;padding:.75rem 1rem;border-radius:12px;display:flex;align-items:center;gap:.75rem">
+          <span style="font-size:1.5rem">${b.icon}</span>
+          <div>
+            <div style="font-weight:600;font-size:.85rem;color:${b.color}">${b.name}</div>
+            <div style="font-size:.7rem;color:var(--text-muted)">${b.category}</div>
+          </div>
+        </div>`).join('')}</div>`;
+    } else {
+      bl.innerHTML = '<div class="empty-state"><div class="icon">🏅</div><p>No badges yet — complete SkillHub tasks to earn them!</p></div>';
+    }
+  }
+
+  if (grievancesData.success && grievancesData.data) {
+    document.getElementById('h-griev').textContent = grievancesData.data.filter(g=>g.status==='open').length;
+  }
+}
+
+async function loadTimetable() {
+  const data = await apiFetch(`/timetable?department=${user.department}&semester=${user.semester}`);
+  const days = ['Monday','Tuesday','Wednesday','Thursday','Friday'];
+  const slots = ['09:00-10:00','10:00-11:00','11:00-12:00','12:00-13:00','14:00-15:00','15:00-16:00'];
+  const table = document.getElementById('tt-table');
+  let html = '<thead><tr><th>Time</th>' + days.map(d=>`<th>${d}</th>`).join('') + '</tr></thead><tbody>';
+  for (const slot of slots) {
+    html += `<tr><th>${slot}</th>`;
+    for (const day of days) {
+      const entry = data.data?.find(e=>e.day===day&&e.slot===slot);
+      html += `<td>${entry?`<div class="tt-slot"><div class="subj">${entry.subject}</div><div class="teacher-name">${entry.substituteTeacher?.name||entry.teacher?.name||''}</div>${entry.substituteTeacher?.name?`<div class="teacher-name" style="color:var(--warning)">Substituting for ${entry.teacher?.name||'faculty'}</div>`:''}</div>`:`<span class="tt-empty">—</span>`}</td>`;
+    }
+    html += '</tr>';
+  }
+  html += '</tbody>';
+  table.innerHTML = html;
+}
+
+async function loadMaterials() {
+  const type = document.getElementById('mat-filter-type')?.value||'';
+  const data = await apiFetch(`/materials?semester=${user.semester||4}&department=${user.department||''}${type?'&fileType='+type:''}`);
+  const list = document.getElementById('materials-list');
+  if (!data.data?.length) { list.innerHTML='<div class="empty-state"><div class="icon">📁</div><p>No materials uploaded yet.</p></div>'; return; }
+  list.innerHTML = `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem">${data.data.map(m=>`
+    <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:1.25rem">
+      <div style="display:flex;justify-content:space-between;align-items:start;gap:.5rem">
+        <div>
+          <div style="font-weight:600;font-size:.9rem;margin-bottom:.25rem">${m.title}</div>
+          <div style="font-size:.75rem;color:var(--text-muted)">${m.subject} • ${m.uploadedBy?.name||'Unknown'}</div>
+        </div>
+        <span class="badge badge-info">${m.fileType}</span>
+      </div>
+      ${m.fileUrl?`<a href="${m.fileUrl}" target="_blank" class="btn btn-secondary btn-sm" style="margin-top:1rem">📥 Download</a>`:'<span style="font-size:.75rem;color:var(--text-muted);margin-top:.5rem;display:block">No file attached</span>'}
+    </div>`).join('')}</div>`;
+}
+
+async function loadGrievances() {
+  const data = await apiFetch('/grievances/mine');
+  const tbody = document.getElementById('griev-tbody');
+  if (!data.data?.length) { tbody.innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--text-muted)">No grievances submitted.</td></tr>'; return; }
+  const colors = {open:'badge-info',in_progress:'badge-warning',escalated:'badge-danger',resolved:'badge-success',closed:'badge-purple'};
+  tbody.innerHTML = data.data.map(g=>{
+    const level = g.status === 'escalated' ? '<span class="badge badge-danger">Level 2 (Admin)</span>' : '<span class="badge badge-purple">Level 1 (HOD)</span>';
+    return `<tr>
+    <td style="font-family:monospace;font-size:.8rem;color:var(--accent)">${g.isAnonymous ? '🔒 ' : ''}${g.ticketId}</td>
+    <td>${g.title}</td>
+    <td>${level}</td>
+    <td><span class="badge ${colors[g.status]||'badge-info'}">${g.status.replace('_',' ')}</span></td>
+    <td style="color:var(--text-muted);font-size:.8rem">${formatDate(g.createdAt)}</td>
+  </tr>`}).join('');
+}
+
+async function submitGrievance() {
+  const body = { category:document.getElementById('griev-cat').value, title:document.getElementById('griev-title').value, description:document.getElementById('griev-desc').value, isAnonymous:document.getElementById('griev-anon').value==='true' };
+  if (!body.title||!body.description) return showToast('Please fill all fields','error');
+  const data = await apiFetch('/grievances',{method:'POST',body:JSON.stringify(body)});
+  if (data.success) { showToast('Grievance submitted! Ticket: '+data.data.ticketId); loadGrievances(); document.getElementById('griev-title').value=''; document.getElementById('griev-desc').value=''; }
+  else showToast(data.message,'error');
+}
+
+async function loadSkillHub(type='') {
+  const data = await apiFetch('/skillhub'+(type?'?type='+type:''));
+  const grid = document.getElementById('skill-grid');
+  if (!data.data?.length) { grid.innerHTML='<div class="empty-state" style="grid-column:1/-1"><div class="icon">⚡</div><p>No tasks posted yet. Be the first!</p></div>'; return; }
+  grid.innerHTML = data.data.map(t=>`
+    <div class="skill-card">
+      <div class="sk-type">${t.type.replace('_',' ')}</div>
+      <div class="sk-title">${t.title}</div>
+      <div class="sk-desc">${t.description}</div>
+      <div class="skill-tags">${t.skillOffered?`<span class="skill-tag">Offers: ${t.skillOffered}</span>`:''}${t.skillWanted?`<span class="skill-tag">Wants: ${t.skillWanted}</span>`:''}</div>
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span class="badge ${t.status==='completed'?'badge-success':t.status==='in_progress'?'badge-warning':'badge-info'}">${t.status.replace('_',' ')}</span>
+        ${t.status==='open'&&t.postedBy._id!==user.id?`<button class="btn btn-primary btn-sm" onclick="applySkill('${t._id}')">Apply</button>`:`<span style="font-size:.75rem;color:var(--text-muted)">${t.applicants.length} applicant(s)</span>`}
+      </div>
+    </div>`).join('');
+}
+
+async function applySkill(id) {
+  const data = await apiFetch(`/skillhub/${id}/apply`,{method:'POST'});
+  if (data.success) { showToast('Applied successfully!'); loadSkillHub(); }
+  else showToast(data.message,'error');
+}
+
+async function postSkill() {
+  const body = { type:document.getElementById('sk-type').value, title:document.getElementById('sk-title').value, description:document.getElementById('sk-desc').value, skillOffered:document.getElementById('sk-offer').value, skillWanted:document.getElementById('sk-want').value };
+  if (!body.title) return showToast('Please enter a title','error');
+  const data = await apiFetch('/skillhub',{method:'POST',body:JSON.stringify(body)});
+  if (data.success) { showToast('Task posted!'); closeModal('skill-modal'); loadSkillHub(); }
+  else showToast(data.message,'error');
+}
+
+async function loadTeachersForFeedback() {
+  const data = await apiFetch('/auth/users?role=teacher');
+  const sel = document.getElementById('fb-teacher');
+  if (data.success && data.data) {
+    sel.innerHTML = '<option value="">Select teacher…</option>' + 
+      data.data.map(t => `<option value="${t.id}">${t.name} (${t.department})</option>`).join('');
+  }
+}
+
+// Star rating
+document.querySelectorAll('.star').forEach(s => {
+  s.addEventListener('click', () => {
+    const v = parseInt(s.dataset.v);
+    document.getElementById('fb-rating').value = v;
+    document.querySelectorAll('.star').forEach((st,i) => st.style.opacity = i<v?'1':'.3');
+  });
+});
+
+async function submitFeedback() {
+  const teacher = document.getElementById('fb-teacher').value;
+  const subject = document.getElementById('fb-subject').value;
+  const rating = parseInt(document.getElementById('fb-rating').value);
+  const comment = document.getElementById('fb-comment').value;
+  if (!subject||!rating) return showToast('Please fill subject and rating','error');
+  const body = { teacher, subject, rating, comment, semester: user.semester };
+  const data = await apiFetch('/feedback',{method:'POST',body:JSON.stringify(body)});
+  if (data.success) {
+    showToast('Feedback submitted! Thank you.');
+    const sel = document.getElementById('fb-teacher');
+    if (sel && sel.value) await loadFeedbackForTeacher(sel.value);
+  } else showToast(data.message,'error');
+}
+
+async function loadFeedbackForTeacher(teacherId) {
+  const container = document.getElementById('fb-list');
+  if (!teacherId) { container.innerHTML = '<div class="empty-state"><div class="icon">💬</div><p>Select a teacher to view feedback.</p></div>'; return; }
+  const data = await apiFetch(`/feedback/teacher/${teacherId}`);
+  if (!data.success) { container.innerHTML = '<div class="empty-state"><div class="icon">⚠️</div><p>Unable to load feedback.</p></div>'; return; }
+  const list = data.data || [];
+  if (!list.length) { container.innerHTML = '<div class="empty-state"><div class="icon">💬</div><p>No feedback for this teacher yet.</p></div>'; return; }
+  container.innerHTML = `<div style="display:flex;flex-direction:column;gap:.75rem">${list.map(f=>`
+    <div style="padding:1rem;background:var(--surface2);border-radius:8px;border:1px solid var(--border)">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem">
+        <span style="font-weight:600;font-size:.875rem">${f.subject}</span>
+        <span style="color:var(--warning)">${'⭐'.repeat(f.rating)}</span>
+      </div>
+      <p style="font-size:.82rem;color:var(--text-muted)">${f.comment||'No comment provided.'}</p>
+      <div style="font-size:.75rem;color:var(--text-muted);margin-top:.5rem">By: ${f.student?.name || 'Anonymous'} • ${new Date(f.createdAt).toLocaleDateString()}</div>
+    </div>`).join('')}</div>`;
+}
+
+async function runPredictor() {
+  const subject = document.getElementById('pred-subject').value;
+  const total = document.getElementById('pred-total').value;
+  if (!subject) return showToast('Please select a subject','error');
+  const data = await apiFetch(`/attendance/predict/${user.id}/${encodeURIComponent(subject)}?totalClasses=${total}`);
+  if (!data.success) return;
+  const r = data.data;
+
+  // Populate stat cards
+  document.getElementById('pr-pct').textContent = r.currentPercentage + '%';
+  document.getElementById('pr-miss').textContent = r.canMiss;
+  document.getElementById('pr-must').textContent = r.mustAttend;
+
+  // Colour the current % based on status
+  const pctEl = document.getElementById('pr-pct');
+  pctEl.style.color = r.currentPercentage >= 75 ? 'var(--success)' : 'var(--danger)';
+
+  // Eligibility badge
+  const statusEl = document.getElementById('pr-status');
+  const iconEl   = document.getElementById('pr-icon');
+  if (r.isEligible) {
+    statusEl.textContent = 'ELIGIBLE';
+    statusEl.style.color = 'var(--success)';
+    iconEl.textContent   = '✅';
+  } else {
+    statusEl.textContent = 'AT RISK';
+    statusEl.style.color = 'var(--danger)';
+    iconEl.textContent   = '⚠️';
+  }
+
+  // Actionable message banner
+  const msgBox  = document.getElementById('pr-message-box');
+  const msgIcon = document.getElementById('pr-msg-icon');
+  const msgText = document.getElementById('pr-message');
+  msgText.textContent = r.message;
+
+  if (!r.isEligible) {
+    // Red banner — cannot recover
+    msgBox.style.background   = 'rgba(239,68,68,.12)';
+    msgBox.style.borderColor  = 'rgba(239,68,68,.4)';
+    msgBox.style.color        = 'var(--danger)';
+    msgIcon.textContent       = '🚨';
+  } else if (r.mustAttend > 0) {
+    // Amber banner — needs to attend some more
+    msgBox.style.background   = 'rgba(245,158,11,.12)';
+    msgBox.style.borderColor  = 'rgba(245,158,11,.4)';
+    msgBox.style.color        = 'var(--warning)';
+    msgIcon.textContent       = '📋';
+  } else {
+    // Green banner — safe
+    msgBox.style.background   = 'rgba(16,185,129,.12)';
+    msgBox.style.borderColor  = 'rgba(16,185,129,.4)';
+    msgBox.style.color        = 'var(--success)';
+    msgIcon.textContent       = '🎉';
+  }
+
+  document.getElementById('pred-result').style.display = 'block';
+}
+
+async function loadProfile() {
+  const data = await apiFetch('/auth/me');
+  if (data.success && data.user) {
+    const u = data.user;
+    document.getElementById('prof-name').value = u.name || '';
+    document.getElementById('prof-email').value = u.email || '';
+    document.getElementById('prof-roll').value = u.rollNumber || '';
+    document.getElementById('prof-dept').value = u.department || '';
+    document.getElementById('prof-sem').value = u.semester || '';
+    document.getElementById('prof-phone').value = u.phone || '';
+    // Show CR badge if assigned
+    const crBadgeEl = document.getElementById('student-cr-badge');
+    if (crBadgeEl) {
+      if (u.isCR) crBadgeEl.innerHTML = '<span class="badge badge-success">Class Representative</span>';
+      else crBadgeEl.innerHTML = '';
+    }
+  }
+}
+
+async function updateProfile() {
+  const body = {
+    name: document.getElementById('prof-name').value,
+    semester: document.getElementById('prof-sem').value,
+    phone: document.getElementById('prof-phone').value
+  };
+  const data = await apiFetch(`/students/${user.id}`, { method: 'PUT', body: JSON.stringify(body) });
+  if (data.success) {
+    showToast('Profile updated successfully!');
+    document.getElementById('student-name').textContent = body.name.split(' ')[0];
+  } else {
+    showToast(data.message || 'Failed to update profile', 'error');
+  }
+}
+
+async function loadLibrary() {
+  const data = await apiFetch('/library/mine');
+  const tbody = document.getElementById('library-tbody');
+  if (!data.success || !data.data || !data.data.length) { 
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text-muted)">No books issued.</td></tr>'; 
+    return; 
+  }
+  tbody.innerHTML = data.data.map(b => {
+    const isOverdue = b.status === 'issued' && new Date(b.dueDate) < new Date();
+    const statusHtml = b.status === 'returned' 
+      ? '<span class="badge badge-success">Returned</span>'
+      : (isOverdue ? '<span class="badge badge-danger">Overdue</span>' : '<span class="badge badge-info">Issued</span>');
+      
+    return `<tr>
+      <td style="font-weight:600">${b.bookTitle}</td>
+      <td style="font-family:monospace;font-size:.8rem;color:var(--accent)">${b.bookId}</td>
+      <td style="font-size:.85rem">${formatDate(b.issuedAt)}</td>
+      <td style="font-size:.85rem;color:${isOverdue?'var(--danger)':'inherit'}">${formatDate(b.dueDate)}</td>
+      <td>${statusHtml}</td>
+      <td style="font-size:.85rem">${b.returnedAt ? formatDate(b.returnedAt) : '—'}</td>
+      <td style="font-weight:600;color:${b.fine > 0 ? 'var(--danger)' : 'inherit'}">₹${b.fine}</td>
+    </tr>`;
+  }).join('');
+}
+async function loadElections() {
+  const container = document.getElementById('election-container');
+  const data = await apiFetch('/elections/active');
+  if (!data.success || !data.data.length) {
+    container.innerHTML = '<div class="empty-state"><div class="icon">🗳️</div><p>No active CR elections in your semester right now.</p></div>';
+    return;
+  }
+
+  container.innerHTML = data.data.map(e => {
+    const isVoter = e.voters.includes(user.id);
+    const isNominee = e.candidates.some(c => c.student?._id === user.id);
+    
+    let actionHtml = '';
+    if (e.status === 'nomination') {
+      actionHtml = isNominee 
+        ? '<div class="badge badge-success">You are a nominee!</div>'
+        : `<button class="btn btn-primary btn-sm" onclick="nominateSelf('${e._id}')">Nominate Myself</button>`;
+    } else if (e.status === 'voting') {
+      const now = new Date();
+      const start = e.startsAt ? new Date(e.startsAt) : null;
+      const end = e.endsAt ? new Date(e.endsAt) : null;
+      
+      if (start && now < start) {
+        actionHtml = `<div class="badge badge-warning">Voting starts at ${start.toLocaleString()}</div>`;
+      } else if (end && now > end) {
+        actionHtml = `<div class="badge badge-danger">Voting ended at ${end.toLocaleString()}</div>`;
+      } else {
+        actionHtml = isVoter 
+          ? '<div class="badge badge-info">Vote Casted ✅</div>'
+          : `<p style="font-size:.85rem;color:var(--text-muted)">Select a candidate below to vote.</p>`;
+      }
+    }
+
+    const candidatesHtml = e.candidates.length ? e.candidates.map(c => `
+      <div style="padding:1rem;background:var(--surface2);border:1px solid var(--border);border-radius:12px;display:flex;justify-content:space-between;align-items:center">
+        <div style="display:flex;align-items:center;gap:.75rem">
+          <div class="user-avatar" style="width:40px;height:40px">${(c.student?.name||'?')[0]}</div>
+          <div>
+            <div style="font-weight:600">${c.student?.name || 'Unknown'}</div>
+            <div style="font-size:.75rem;color:var(--text-muted)">${c.manifesto || 'No manifesto'}</div>
+          </div>
+        </div>
+        ${e.status === 'voting' && !isVoter ? `<button class="btn btn-secondary btn-xs" onclick="voteForCandidate('${e._id}','${c._id}')">Vote</button>` : ''}
+      </div>
+    `).join('') : '<p style="color:var(--text-muted);font-size:.85rem">No nominations yet.</p>';
+
+    return `
+      <div class="card" style="margin-bottom:1.5rem">
+        <div class="card-header">
+          <div>
+            <h3>🗳️ ${e.title}</h3>
+            <div style="font-size:.85rem;color:var(--text-muted)">Status: <span class="badge badge-purple">${e.status.toUpperCase()}</span></div>
+          </div>
+          <div>${actionHtml}</div>
+        </div>
+        <div class="card-body">
+          <p style="margin-bottom:1rem;color:var(--text-muted)">${e.description}</p>
+          <h4 style="margin-bottom:.75rem">Candidates</h4>
+          <div style="display:flex;flex-direction:column;gap:.75rem">${candidatesHtml}</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+async function nominateSelf(id) {
+  const manifesto = prompt('Enter your brief manifesto (vision as CR):');
+  if (!manifesto) return;
+  const data = await apiFetch(`/elections/${id}/nominate`, {
+    method: 'POST',
+    body: JSON.stringify({ manifesto })
+  });
+  if (data.success) {
+    showToast('Nomination successful!');
+    loadElections();
+  } else {
+    showToast(data.message, 'error');
+  }
+}
+
+async function voteForCandidate(electionId, candidateId) {
+  const election = (await apiFetch('/elections/active')).data.find(e => e._id === electionId);
+  const now = new Date();
+  if (election.startsAt && now < new Date(election.startsAt)) return showToast('Voting hasn\'t started yet','error');
+  if (election.endsAt && now > new Date(election.endsAt)) return showToast('Voting has ended','error');
+  
+  if (!confirm('Cast your vote for this candidate? This cannot be undone.')) return;
+  const data = await apiFetch(`/elections/${electionId}/vote`, {
+    method: 'POST',
+    body: JSON.stringify({ candidateId })
+  });
+  if (data.success) {
+    showToast('Vote casted successfully!');
+    loadElections();
+  } else {
+    showToast(data.message, 'error');
+  }
+}
+</script>
+</body>
+</html>

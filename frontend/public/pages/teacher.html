@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Teacher Dashboard — CRAMBRUNCH</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="../css/main.css"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <img src="../assets/logo.jpg" alt="Logo" style="height:40px;width:auto;margin-right:10px;border-radius:8px;"/>
+    <span>Teacher Portal</span>
+  </div>
+  <div class="sidebar-user">
+    <div class="user-avatar">TC</div>
+    <div class="user-info"><div class="name user-name">Teacher</div><div class="role-badge user-role">Teacher</div></div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section">
+      <div class="nav-section-title">Overview</div>
+      <a class="nav-item active" data-view="v-home" onclick="switchView('v-home')"><span class="icon">🏠</span><span class="label">Dashboard</span></a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-title">Classroom</div>
+      <a class="nav-item" data-view="v-attendance" onclick="switchView('v-attendance')"><span class="icon">📅</span><span class="label">Mark Attendance</span></a>
+      <a class="nav-item" data-view="v-marks" onclick="switchView('v-marks')"><span class="icon">📊</span><span class="label">Enter Marks</span></a>
+      <a class="nav-item" data-view="v-students" onclick="switchView('v-students')"><span class="icon">👥</span><span class="label">My Students</span></a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-title">Resources</div>
+      <a class="nav-item" data-view="v-materials" onclick="switchView('v-materials')"><span class="icon">📁</span><span class="label">Upload Materials</span></a>
+      <a class="nav-item" data-view="v-timetable" onclick="switchView('v-timetable')"><span class="icon">🗓️</span><span class="label">My Timetable</span></a>
+      <a class="nav-item" data-view="v-feedback" onclick="switchView('v-feedback')"><span class="icon">⭐</span><span class="label">My Feedback</span></a>
+      <a class="nav-item" href="micro-internship.html"><span class="icon">🏆</span><span class="label">Micro-Internships</span></a>
+    </div>
+  </nav>
+  <div class="sidebar-bottom">
+    <button class="logout-btn" data-logout><span>🚪</span> Logout</button>
+  </div>
+</aside>
+
+<div class="notif-panel">
+  <div class="notif-panel-header">
+    <h3>🔔 Notifications</h3>
+    <button class="btn btn-xs btn-danger" onclick="toggleNotifPanel()" title="Close Notifications">✕</button>
+  </div>
+  <div class="notif-list"></div>
+</div>
+
+<main class="main">
+  <div class="topbar">
+    <div class="page-title">Dashboard</div>
+    <div class="topbar-actions">
+      <button class="notif-btn" onclick="toggleNotifPanel()">🔔 <span class="notif-dot" style="display:none">0</span></button>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- HOME -->
+    <div class="view active" id="v-home">
+      <div style="margin-bottom:1.5rem">
+        <h2 style="font-family:var(--font-head);font-size:1.4rem;font-weight:700">Welcome, <span id="teacher-name">Professor</span> 👋</h2>
+        <p style="color:var(--text-muted);font-size:.875rem;margin-top:.25rem">Your classroom overview</p>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card" onclick="switchView('v-students')" style="cursor:pointer" title="View Students"><div class="s-icon">👥</div><div class="s-val" id="h-students">—</div><div class="s-lbl">Total Students</div></div>
+        <div class="stat-card" onclick="switchView('v-attendance')" style="cursor:pointer" title="Mark Attendance"><div class="s-icon">📅</div><div class="s-val" id="h-att-today">—</div><div class="s-lbl">Attendance Today</div></div>
+        <div class="stat-card" onclick="switchView('v-feedback')" style="cursor:pointer" title="View Feedback"><div class="s-icon">⭐</div><div class="s-val" id="h-rating">—</div><div class="s-lbl">Avg Feedback Rating</div></div>
+        <div class="stat-card" onclick="switchView('v-materials')" style="cursor:pointer" title="Manage Materials"><div class="s-icon">📁</div><div class="s-val" id="h-mats">—</div><div class="s-lbl">Materials Uploaded</div></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><h3>📅 Today — Quick Attendance</h3></div>
+        <div class="card-body">
+          <p style="color:var(--text-muted);font-size:.875rem;margin-bottom:1rem">Go to <strong style="color:var(--accent)">Mark Attendance</strong> to record today's class.</p>
+          <button class="btn btn-primary" onclick="switchView('v-attendance')">Go to Attendance →</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><h3>📚 Course Structure (Assigned)</h3></div>
+        <div class="card-body" id="my-course-structure">
+          <div class="empty-state"><div class="icon">📚</div><p>Loading course structure…</p></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ATTENDANCE -->
+    <div class="view" id="v-attendance">
+      <div class="card" style="margin-bottom:1.5rem">
+        <div class="card-header"><h3>📅 Mark Attendance</h3></div>
+        <div class="card-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Subject</label>
+              <select id="att-subject">
+                <option value="">Select subject…</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Date</label>
+              <input type="date" id="att-date"/>
+            </div>
+            <div class="form-group">
+              <label>Department</label>
+              <input type="text" id="att-dept" placeholder="e.g. Computer Science"/>
+            </div>
+            <div class="form-group">
+              <label>Semester</label>
+              <select id="att-sem">
+                <option>1</option><option>2</option><option>3</option><option selected>4</option><option>5</option><option>6</option><option>7</option><option>8</option>
+              </select>
+            </div>
+          </div>
+          <button class="btn btn-secondary" onclick="loadStudentsForAttendance()">Load Students</button>
+        </div>
+      </div>
+      <div class="card" id="att-students-card" style="display:none">
+        <div class="card-header">
+          <h3>Student List</h3>
+          <div style="display:flex;gap:.5rem">
+            <button class="btn btn-success btn-sm" onclick="markAll('present')">✅ All Present</button>
+            <button class="btn btn-danger btn-sm" onclick="markAll('absent')">❌ All Absent</button>
+          </div>
+        </div>
+        <div class="card-body">
+          <div id="att-student-list"></div>
+          <div style="margin-top:1.5rem">
+            <button class="btn btn-primary" onclick="submitAttendance()">Submit Attendance</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MARKS -->
+    <div class="view" id="v-marks">
+      <div class="card" style="margin-bottom:1.5rem">
+        <div class="card-header"><h3>📊 Enter Marks</h3></div>
+        <div class="card-body">
+          <div class="form-row">
+            <div class="form-group"><label>Student Roll No / Name</label><input type="text" id="mk-student-search" placeholder="Search student…" oninput="searchStudents()"/></div>
+            <div class="form-group">
+              <label>Select Student</label>
+              <select id="mk-student"><option value="">—</option></select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>Subject</label><input type="text" id="mk-subject" placeholder="Subject name"/></div>
+            <div class="form-group">
+              <label>Exam Type</label>
+              <select id="mk-type">
+                <option value="internal">Internal</option>
+                <option value="practical">Practical</option>
+                <option value="assignment">Assignment</option>
+                <option value="semester">Semester</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>Marks Obtained</label><input type="number" id="mk-obtained" min="0"/></div>
+            <div class="form-group"><label>Total Marks</label><input type="number" id="mk-total" min="1"/></div>
+          </div>
+          <div class="form-group"><label>Semester</label><select id="mk-sem"><option>1</option><option>2</option><option>3</option><option selected>4</option><option>5</option><option>6</option></select></div>
+          <div class="form-group"><label>Remarks (optional)</label><input type="text" id="mk-remarks" placeholder="e.g. Good performance"/></div>
+          <button class="btn btn-primary" onclick="submitMarks()">Save Marks</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><h3>Recent Marks Entered</h3></div>
+        <div class="card-body" id="recent-marks">
+          <div class="empty-state"><div class="icon">📊</div><p>Marks you enter will appear here.</p></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STUDENTS -->
+    <div class="view" id="v-students">
+      <div class="card">
+        <div class="card-header">
+          <h3>👥 My Students</h3>
+          <div style="display:flex;gap:.5rem">
+            <input type="text" placeholder="Search…" id="stu-search" oninput="filterStudents()" style="padding:.4rem .8rem;background:var(--primary);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:.8rem;"/>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Name</th><th>Roll No</th><th>Semester</th><th>Department</th><th>CR</th><th>Actions</th></tr></thead>
+              <tbody id="students-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MATERIALS -->
+    <div class="view" id="v-materials">
+      <div class="card" style="margin-bottom:1.5rem">
+        <div class="card-header"><h3>📁 Upload Study Material</h3></div>
+        <div class="card-body">
+          <div class="form-row">
+            <div class="form-group"><label>Title</label><input type="text" id="mat-title" placeholder="e.g. Unit 3 Notes — Trees"/></div>
+            <div class="form-group"><label>Subject</label><input type="text" id="mat-subject" placeholder="Subject name"/></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Type</label>
+              <select id="mat-type">
+                <option value="notes">Notes</option>
+                <option value="assignment">Assignment</option>
+                <option value="pyq">Previous Year Questions</option>
+                <option value="circular">Circular</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            <div class="form-group"><label>Semester</label><select id="mat-sem"><option>1</option><option>2</option><option>3</option><option selected>4</option><option>5</option><option>6</option></select></div>
+          </div>
+          <div class="form-group"><label>File URL (Google Drive / OneDrive shareable link)</label><input type="text" id="mat-url" placeholder="https://drive.google.com/…"/></div>
+          <button class="btn btn-primary" onclick="uploadMaterial()">Upload Material</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><h3>Uploaded Materials</h3></div>
+        <div class="card-body" id="mat-list"></div>
+      </div>
+    </div>
+
+    <!-- TIMETABLE -->
+    <div class="view" id="v-timetable">
+      <div class="card" style="margin-bottom:1.5rem">
+        <div class="card-header"><h3>Extra Class Request</h3></div>
+        <div class="card-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Subject</label>
+              <select id="extra-subject"><option value="">Select subject...</option></select>
+            </div>
+            <div class="form-group">
+              <label>Semester</label>
+              <select id="extra-sem">
+                <option>1</option><option>2</option><option>3</option><option selected>4</option><option>5</option><option>6</option><option>7</option><option>8</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Day</label>
+              <select id="extra-day"><option>Monday</option><option>Tuesday</option><option>Wednesday</option><option>Thursday</option><option>Friday</option><option>Saturday</option></select>
+            </div>
+            <div class="form-group">
+              <label>Slot</label>
+              <select id="extra-slot"><option>09:00-10:00</option><option>10:00-11:00</option><option>11:00-12:00</option><option>12:00-13:00</option><option>14:00-15:00</option><option>15:00-16:00</option></select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>Room</label><input type="text" id="extra-room" placeholder="e.g. Lab 2"/></div>
+            <div class="form-group"><label>Reason</label><input type="text" id="extra-reason" placeholder="e.g. Remedial session"/></div>
+          </div>
+          <button class="btn btn-primary" onclick="requestExtraClass()">Submit Request</button>
+        </div>
+      </div>
+      <div class="card" style="margin-bottom:1.5rem">
+        <div class="card-header"><h3>My Extra Class Requests</h3></div>
+        <div class="card-body" id="my-extra-classes"></div>
+      </div>
+      <div class="card" style="margin-bottom:1.5rem">
+        <div class="card-header"><h3>Open Extra Classes To Claim</h3><button class="btn btn-secondary btn-sm" onclick="loadClaimableExtraClasses()">Refresh</button></div>
+        <div class="card-body" id="substitution-list">
+          <div class="empty-state"><div class="icon">⚡</div><p>Checking for available periods...</p></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><h3>🗓️ My Timetable</h3></div>
+        <div class="card-body"><div style="overflow-x:auto"><table class="timetable" id="tt-table"></table></div></div>
+      </div>
+    </div>
+
+    <!-- FEEDBACK -->
+    <div class="view" id="v-feedback">
+      <div class="card">
+        <div class="card-header"><h3>⭐ Student Feedback for Me</h3></div>
+        <div class="card-body">
+          <div id="fb-summary" style="margin-bottom:1.5rem"></div>
+          <div id="fb-list"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<script src="../js/app.js"></script>
+<script>
+const user = requireAuth(['teacher','hod']);
+if (user) {
+  initUserUI(user);
+  document.getElementById('teacher-name').textContent = user.name.split(' ')[0];
+  // Pre-fill subject dropdown from user's subjects
+  const sel = document.getElementById('att-subject');
+  const extraSel = document.getElementById('extra-subject');
+  getTeacherSubjects().forEach(s => {
+    if (sel) sel.innerHTML += `<option value="${s}">${s}</option>`;
+    if (extraSel) extraSel.innerHTML += `<option value="${s}">${s}</option>`;
+  });
+  applyTeacherSemesterDefaults();
+  // Default date to today
+  document.getElementById('att-date').value = new Date().toISOString().slice(0,10);
+  loadAll();
+  loadNotifications();
+}
+
+async function loadAll() {
+  await Promise.all([loadStudents(), loadMyMaterials(), loadTimetable(), loadMyFeedback(), loadMyExtraClasses(), loadClaimableExtraClasses(), loadMyCourseStructure()]);
+}
+
+function getTeacherSubjects() {
+  if (Array.isArray(user.subjects)) return user.subjects;
+  if (!user.subjects) return [];
+  return String(user.subjects).split(',').map(s => s.trim()).filter(Boolean);
+}
+
+function getTeacherSemester() {
+  const sem = Number(user.semester);
+  return Number.isInteger(sem) && sem > 0 ? sem : 4;
+}
+
+function applyTeacherSemesterDefaults() {
+  const sem = String(getTeacherSemester());
+  ['att-sem', 'mk-sem', 'mat-sem', 'extra-sem'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (![...el.options].some(option => option.value === sem || option.textContent === sem)) {
+      el.innerHTML += `<option>${sem}</option>`;
+    }
+    el.value = sem;
+  });
+}
+
+let allStudents = [];
+async function loadStudents() {
+  const data = await apiFetch(`/students?department=${encodeURIComponent(user.department || '')}&semester=${getTeacherSemester()}`);
+  if (!data.success) return;
+  allStudents = data.data;
+  document.getElementById('h-students').textContent = data.data.length;
+  renderStudentsTable(data.data);
+  // Fill student dropdown for marks
+  const sel = document.getElementById('mk-student');
+  sel.innerHTML = '<option value="">Select student…</option>' + data.data.map(s=>`<option value="${s._id}">${s.name} (${s.rollNumber})</option>`).join('');
+}
+
+// Render course structure for teacher's assigned course and highlight subjects they teach
+async function loadMyCourseStructure() {
+  const container = document.getElementById('my-course-structure');
+  container.innerHTML = '<div class="empty-state"><div class="icon">📚</div><p>Loading course structure…</p></div>';
+  const data = await apiFetch('/departments/my-department');
+  if (!data.success || !data.data) { container.innerHTML = '<div class="empty-state"><div class="icon">⚠️</div><p>Unable to load course info.</p></div>'; return; }
+  const dept = data.data;
+  const courseName = user.course;
+  const teachSubs = getTeacherSubjects();
+  const course = (dept.courses || []).find(c => c.name === courseName) ||
+    (dept.courses || []).find(c => courseHasTeacherSubject(c, teachSubs)) ||
+    null;
+  if (!course) { container.innerHTML = `<div class="empty-state"><div class="icon">📚</div><p>Your assigned course information is not available.</p></div>`; return; }
+
+  let html = '';
+  if (Array.isArray(course.years) && course.years.length) {
+    html = course.years.map(y => {
+      const sems = (y.semesters || []).map(s => {
+        const subs = (s.subjects||[]).map(sub => {
+          const isMine = teachSubs.includes(sub) ? 'border:2px solid var(--accent);padding:.25rem .5rem;border-radius:6px;background:linear-gradient(90deg,rgba(124,58,237,.06),transparent)' : 'padding:.25rem .5rem;border-radius:6px;background:var(--surface2);';
+          return `<div style="display:inline-block;margin-right:.4rem;margin-bottom:.4rem;${isMine}">${sub}</div>`;
+        }).join('');
+        return `<div style="margin-bottom:.5rem"><strong>Semester ${s.semNumber}</strong><div style="margin-top:.35rem">${subs || '<span style="color:var(--text-muted)">No subjects</span>'}</div></div>`;
+      }).join('');
+      return `<div style="margin-bottom:.8rem"><div style="font-weight:700">Year ${y.yearNumber}</div>${sems}</div>`;
+    }).join('');
+  } else {
+    html = (course.subjects || []).map(s => {
+      const isMine = teachSubs.includes(s) ? 'border:2px solid var(--accent);padding:.25rem .5rem;border-radius:6px;background:linear-gradient(90deg,rgba(124,58,237,.06),transparent)' : 'padding:.25rem .5rem;border-radius:6px;background:var(--surface2);';
+      return `<div style="display:inline-block;margin-right:.4rem;margin-bottom:.4rem;${isMine}">${s}</div>`;
+    }).join('');
+  }
+
+  container.innerHTML = `<div><div style="font-weight:700;margin-bottom:.5rem">${course.name} • ${course.durationYears} years</div><div>${html}</div></div>`;
+}
+
+function courseHasTeacherSubject(course, teachSubs) {
+  if (!teachSubs.length) return false;
+  const subjects = [];
+  if (Array.isArray(course.subjects)) subjects.push(...course.subjects);
+  (course.years || []).forEach(y => (y.semesters || []).forEach(s => subjects.push(...(s.subjects || []))));
+  return subjects.some(subject => teachSubs.includes(subject));
+}
+
+function renderStudentsTable(students) {
+  const tbody = document.getElementById('students-tbody');
+  if (!students.length) { tbody.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--text-muted)">No students found.</td></tr>'; return; }
+  tbody.innerHTML = students.map(s=>{
+    const crBadge = s.isCR ? '<span class="badge badge-success">CR</span>' : '';
+    return `<tr>
+      <td><strong>${s.name}</strong></td>
+      <td style="font-family:monospace;font-size:.85rem;color:var(--accent)">${s.rollNumber||'—'}</td>
+      <td>Sem ${s.semester}</td>
+      <td style="color:var(--text-muted)">${s.department}</td>
+      <td style="text-align:center">${crBadge}</td>
+      <td><button class="btn btn-secondary btn-xs" onclick="viewStudentAttendance('${s._id}','${s.name}')">View Attendance</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function filterStudents() {
+  const q = document.getElementById('stu-search').value.toLowerCase();
+  renderStudentsTable(allStudents.filter(s => s.name.toLowerCase().includes(q) || (s.rollNumber||'').toLowerCase().includes(q)));
+}
+
+async function loadStudentsForAttendance() {
+  const dept = document.getElementById('att-dept').value || user.department;
+  const sem = document.getElementById('att-sem').value;
+  const subject = document.getElementById('att-subject').value;
+  const date = document.getElementById('att-date').value;
+
+  if (!subject || !date) return showToast('Please select subject and date first', 'error');
+
+  const data = await apiFetch(`/students?department=${dept}&semester=${sem}`);
+  if (!data.success) return;
+
+  // Fetch existing attendance to allow editing
+  const existingData = await apiFetch(`/attendance/class/${subject}?date=${date}`);
+  const existingAtt = existingData.success ? existingData.data : [];
+  const statusMap = {};
+  existingAtt.forEach(e => {
+    if (e.student && e.student._id) statusMap[e.student._id] = e.status;
+    else if (e.student) statusMap[e.student] = e.status;
+  });
+
+  const list = document.getElementById('att-student-list');
+  if (!data.data.length) { list.innerHTML='<p style="color:var(--text-muted)">No students found for these filters.</p>'; return; }
+  
+  if (existingAtt.length > 0) {
+    showToast('Loaded existing attendance. You can edit and submit again.', 'info');
+  }
+
+  list.innerHTML = `<table width="100%" style="border-collapse:collapse">
+    <thead><tr><th style="text-align:left;padding:.5rem;font-size:.75rem;color:var(--text-muted)">Student</th><th style="padding:.5rem;font-size:.75rem;color:var(--text-muted)">Roll No</th><th style="padding:.5rem;text-align:center;font-size:.75rem;color:var(--text-muted)">Status</th></tr></thead>
+    <tbody>${data.data.map(s=>{
+      const status = statusMap[s._id] || 'absent';
+      return `<tr>
+      <td style="padding:.6rem .5rem"><strong style="font-size:.875rem">${s.name}</strong></td>
+      <td style="padding:.6rem .5rem;font-size:.8rem;color:var(--text-muted);font-family:monospace">${s.rollNumber||'—'}</td>
+      <td style="padding:.6rem .5rem;text-align:center">
+        <div style="display:flex;gap:.5rem;justify-content:center">
+          <label style="cursor:pointer;display:flex;align-items:center;gap:.3rem;font-size:.8rem">
+            <input type="radio" name="att_${s._id}" value="present" data-id="${s._id}" ${status==='present'?'checked':''} style="accent-color:var(--success)"> Present
+          </label>
+          <label style="cursor:pointer;display:flex;align-items:center;gap:.3rem;font-size:.8rem">
+            <input type="radio" name="att_${s._id}" value="absent" data-id="${s._id}" ${status==='absent'?'checked':''} style="accent-color:var(--danger)"> Absent
+          </label>
+          <label style="cursor:pointer;display:flex;align-items:center;gap:.3rem;font-size:.8rem">
+            <input type="radio" name="att_${s._id}" value="late" data-id="${s._id}" ${status==='late'?'checked':''} style="accent-color:var(--warning)"> Late
+          </label>
+        </div>
+      </td>
+    </tr>`}).join('')}</tbody>
+  </table>`;
+  document.getElementById('att-students-card').style.display = 'block';
+}
+
+function markAll(status) {
+  document.querySelectorAll(`input[type="radio"][value="${status}"]`).forEach(r => r.checked = true);
+}
+
+async function submitAttendance() {
+  const subject = document.getElementById('att-subject').value;
+  const date = document.getElementById('att-date').value;
+  if (!subject||!date) return showToast('Please select subject and date','error');
+  const radios = document.querySelectorAll('input[type="radio"]:checked[data-id]');
+  const seen = {};
+  const records = [];
+  radios.forEach(r => {
+    if (!seen[r.dataset.id]) { seen[r.dataset.id]=true; records.push({studentId:r.dataset.id,status:r.value}); }
+  });
+  if (!records.length) return showToast('No students to mark','error');
+  const data = await apiFetch('/attendance/mark',{method:'POST',body:JSON.stringify({records,subject,date,slot:'—'})});
+  if (data.success) { showToast(`Attendance saved for ${records.length} students!`); document.getElementById('h-att-today').textContent = records.filter(r=>r.status==='present').length+'/'+records.length; }
+  else showToast(data.message,'error');
+}
+
+async function submitMarks() {
+  const studentId = document.getElementById('mk-student').value;
+  const subject = document.getElementById('mk-subject').value;
+  const examType = document.getElementById('mk-type').value;
+  const marksObtained = parseFloat(document.getElementById('mk-obtained').value);
+  const totalMarks = parseFloat(document.getElementById('mk-total').value);
+  const semester = parseInt(document.getElementById('mk-sem').value);
+  const remarks = document.getElementById('mk-remarks').value;
+  if (!studentId||!subject||!marksObtained||!totalMarks) return showToast('Please fill all required fields','error');
+  const data = await apiFetch('/marks',{method:'POST',body:JSON.stringify({student:studentId,subject,examType,marksObtained,totalMarks,semester,remarks})});
+  if (data.success) {
+    showToast('Marks saved & student notified!');
+    const recent = document.getElementById('recent-marks');
+    const student = allStudents.find(s=>s._id===studentId);
+    recent.innerHTML = `<div style="padding:.75rem;background:var(--surface2);border-radius:8px;margin-bottom:.5rem;font-size:.875rem"><strong>${student?.name||'Student'}</strong> — ${subject}: ${marksObtained}/${totalMarks} (${examType})</div>` + (recent.querySelector('.empty-state')?.outerHTML||'') ;
+    recent.querySelector('.empty-state')?.remove();
+  }
+  else showToast(data.message,'error');
+}
+
+async function loadMyMaterials() {
+  const data = await apiFetch('/materials');
+  document.getElementById('h-mats').textContent = data.data?.length||0;
+  const list = document.getElementById('mat-list');
+  if (!data.data?.length) { list.innerHTML='<div class="empty-state"><div class="icon">📁</div><p>No materials uploaded yet.</p></div>'; return; }
+  list.innerHTML = `<div style="display:flex;flex-direction:column;gap:.75rem">${data.data.map(m=>`
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:.9rem 1rem;background:var(--surface2);border-radius:8px;border:1px solid var(--border)">
+      <div><div style="font-weight:600;font-size:.875rem">${m.title}</div><div style="font-size:.75rem;color:var(--text-muted);margin-top:.2rem">${m.subject} • Sem ${m.semester} • <span class="badge badge-info">${m.fileType}</span></div></div>
+      <div style="display:flex;gap:.5rem">
+        ${m.fileUrl?`<a href="${m.fileUrl}" target="_blank" class="btn btn-secondary btn-xs">View</a>`:''}
+        <button class="btn btn-danger btn-xs" onclick="deleteMaterial('${m._id}')">Delete</button>
+      </div>
+    </div>`).join('')}</div>`;
+}
+
+async function uploadMaterial() {
+  const body = { title:document.getElementById('mat-title').value, subject:document.getElementById('mat-subject').value, fileType:document.getElementById('mat-type').value, semester:parseInt(document.getElementById('mat-sem').value), fileUrl:document.getElementById('mat-url').value, department:user.department };
+  if (!body.title||!body.subject) return showToast('Please fill title and subject','error');
+  const data = await apiFetch('/materials',{method:'POST',body:JSON.stringify(body)});
+  if (data.success) { showToast('Material uploaded!'); loadMyMaterials(); }
+  else showToast(data.message,'error');
+}
+
+async function deleteMaterial(id) {
+  if (!confirm('Delete this material?')) return;
+  const data = await apiFetch(`/materials/${id}`,{method:'DELETE'});
+  if (data.success) { showToast('Deleted'); loadMyMaterials(); }
+}
+
+async function loadTimetable() {
+  const data = await apiFetch(`/timetable?department=${user.department}`);
+  const days = ['Monday','Tuesday','Wednesday','Thursday','Friday'];
+  const slots = ['09:00-10:00','10:00-11:00','11:00-12:00','12:00-13:00','14:00-15:00','15:00-16:00'];
+  const table = document.getElementById('tt-table');
+  let html = '<thead><tr><th>Time</th>'+days.map(d=>`<th>${d}</th>`).join('')+'</tr></thead><tbody>';
+  for (const slot of slots) {
+    html+=`<tr><th>${slot}</th>`;
+    for (const day of days) {
+      const entry = data.data?.find(e=>e.day===day&&e.slot===slot&&(e.teacher?._id===user.id||e.substituteTeacher?._id===user.id));
+      html+=`<td>${entry?`<div class="tt-slot"><div class="subj">${entry.subject}</div><div class="teacher-name">Room: ${entry.room||'—'}</div>${entry.substituteTeacher?._id===user.id&&entry.teacher?._id!==user.id?'<div class="teacher-name" style="color:var(--warning)">Covering this period</div>':''}${entry.substitutionStatus==='open'&&entry.teacher?._id===user.id?'<div class="teacher-name" style="color:var(--danger)">Awaiting substitute</div>':''}</div>`:`<span class="tt-empty">—</span>`}</td>`;
+    }
+    html+='</tr>';
+  }
+  table.innerHTML=html+'</tbody>';
+}
+
+async function requestExtraClass() {
+  const body = {
+    subject: document.getElementById('extra-subject').value,
+    semester: parseInt(document.getElementById('extra-sem').value, 10),
+    day: document.getElementById('extra-day').value,
+    slot: document.getElementById('extra-slot').value,
+    room: document.getElementById('extra-room').value,
+    reason: document.getElementById('extra-reason').value
+  };
+  if (!body.subject || !body.reason) return showToast('Subject and reason are required', 'error');
+  const data = await apiFetch('/extra-classes', { method:'POST', body:JSON.stringify(body) });
+  if (data.success) {
+    showToast('Extra class request submitted.');
+    ['extra-room', 'extra-reason'].forEach(id => document.getElementById(id).value = '');
+    await loadMyExtraClasses();
+  } else {
+    showToast(data.message || 'Unable to submit request', 'error');
+  }
+}
+
+async function loadMyExtraClasses() {
+  const data = await apiFetch('/extra-classes');
+  const list = document.getElementById('my-extra-classes');
+  if (!data.success || !data.data?.length) {
+    list.innerHTML = '<div class="empty-state"><div class="icon">⚡</div><p>No extra class requests yet.</p></div>';
+    return;
+  }
+  const colorMap = { pending:'badge-warning', approved:'badge-success', rejected:'badge-danger', open_for_claim:'badge-danger', claimed:'badge-info', cancelled:'badge-purple' };
+  list.innerHTML = `<div style="display:flex;flex-direction:column;gap:.75rem">${data.data.map(item=>`
+    <div style="padding:1rem;background:var(--surface2);border:1px solid var(--border);border-radius:10px">
+      <div style="display:flex;justify-content:space-between;gap:1rem;align-items:center;flex-wrap:wrap">
+        <div>
+          <div style="font-weight:600">${item.subject}</div>
+          <div style="font-size:.8rem;color:var(--text-muted)">${item.day} • ${item.slot} • Sem ${item.semester}${item.room?` • Room ${item.room}`:''}</div>
+          <div style="font-size:.8rem;color:var(--text-muted)">Reason: ${item.reason || '—'}</div>
+          ${item.substituteTeacher?.name?`<div style="font-size:.8rem;color:var(--warning)">Claimed by ${item.substituteTeacher.name}</div>`:''}
+        </div>
+        <div style="display:flex;gap:.5rem;align-items:center;flex-wrap:wrap">
+          <span class="badge ${colorMap[item.status] || 'badge-info'}">${item.status.replace(/_/g,' ')}</span>
+          ${['pending','approved'].includes(item.status)?`<button class="btn btn-secondary btn-xs" onclick="markExtraClassUnavailable('${item._id}')">Not Available</button>`:''}
+        </div>
+      </div>
+    </div>`).join('')}</div>`;
+}
+
+async function markExtraClassUnavailable(id) {
+  const data = await apiFetch(`/extra-classes/${id}/unavailable`, { method:'PUT' });
+  if (data.success) {
+    showToast('This class is now visible to free teachers. The first claim will be assigned.');
+    await Promise.all([loadMyExtraClasses(), loadClaimableExtraClasses()]);
+  } else {
+    showToast(data.message || 'Unable to open claim flow', 'error');
+  }
+}
+
+async function loadClaimableExtraClasses() {
+  const data = await apiFetch('/extra-classes/claimable');
+  const list = document.getElementById('substitution-list');
+  if (!data.success || !data.data?.length) {
+    list.innerHTML = '<div class="empty-state"><div class="icon">⚡</div><p>No open extra classes available to claim.</p></div>';
+    return;
+  }
+  list.innerHTML = `<div style="display:flex;flex-direction:column;gap:.75rem">${data.data.map(item=>`
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:1rem;padding:1rem;background:var(--surface2);border:1px solid var(--border);border-radius:10px">
+      <div>
+        <div style="font-weight:600">${item.subject}</div>
+        <div style="font-size:.8rem;color:var(--text-muted)">${item.day} • ${item.slot} • Sem ${item.semester}${item.room?` • Room ${item.room}`:''}</div>
+        <div style="font-size:.8rem;color:var(--text-muted)">Originally requested by ${item.requestedBy?.name || 'Teacher'}</div>
+      </div>
+      <button class="btn btn-primary btn-sm" onclick="claimExtraClass('${item._id}')">Claim Extra Class</button>
+    </div>`).join('')}</div>`;
+}
+
+async function claimExtraClass(id) {
+  const data = await apiFetch(`/extra-classes/${id}/claim`, { method:'PUT' });
+  if (data.success) {
+    showToast('Extra class claimed successfully.');
+    await Promise.all([loadClaimableExtraClasses(), loadMyExtraClasses()]);
+  } else {
+    showToast(data.message || 'Unable to claim extra class', 'error');
+  }
+}
+
+async function loadMyFeedback() {
+  const data = await apiFetch('/feedback/my');
+  const summary = document.getElementById('fb-summary');
+  const list = document.getElementById('fb-list');
+  
+  if (!data.success) return;
+
+  summary.innerHTML = `
+    <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:1rem; margin-bottom:1.5rem">
+      <div class="stat-card" style="padding:1rem 1.5rem">
+        <div class="s-icon">⭐</div>
+        <div>
+          <div class="s-val">${data.average||'—'}/5</div>
+          <div class="s-lbl">Overall Rating</div>
+        </div>
+      </div>
+      <div class="stat-card" style="padding:1rem 1.5rem">
+        <div class="s-icon">💬</div>
+        <div>
+          <div class="s-val">${data.data?.length||0}</div>
+          <div class="s-lbl">Total Reviews</div>
+        </div>
+      </div>
+    </div>
+    
+    <div style="display:flex; gap:1rem; flex-wrap:wrap; margin-bottom:1.5rem">
+      ${(data.subjects || []).map(s => `
+        <div style="background:var(--surface2); border:1px solid var(--border); padding:.75rem 1rem; border-radius:10px">
+          <div style="font-size:.75rem; color:var(--text-muted); margin-bottom:.25rem">${s.subject}</div>
+          <div style="font-weight:700; font-size:1.1rem">${s.average} <span style="font-size:.8rem; font-weight:400; color:var(--text-muted)">(${s.count} reviews)</span></div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+
+  document.getElementById('h-rating').textContent = (data.average||'—')+'/5';
+  
+  if (!data.data?.length) { 
+    list.innerHTML='<div class="empty-state"><div class="icon">💬</div><p>No feedback received yet.</p></div>'; 
+    return; 
+  }
+  
+  list.innerHTML = `
+    <h4 style="margin-bottom:1rem">Detailed Comments</h4>
+    <div style="display:flex;flex-direction:column;gap:.75rem">
+      ${data.data.map(f=>`
+        <div style="padding:1rem;background:var(--surface2);border-radius:8px;border:1px solid var(--border)">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem">
+            <span style="font-weight:600;font-size:.875rem">${f.subject}</span>
+            <span style="color:var(--warning)">${'⭐'.repeat(f.rating)}</span>
+          </div>
+          <p style="font-size:.82rem;color:var(--text-muted)">${f.comment||'No comment provided.'}</p>
+          <div style="font-size:.7rem; color:var(--text-muted); margin-top:.5rem">${new Date(f.createdAt).toLocaleDateString()}</div>
+        </div>`).join('')}
+    </div>`;
+}
+
+function searchStudents() {
+  const q = document.getElementById('mk-student-search').value.toLowerCase();
+  const sel = document.getElementById('mk-student');
+  const filtered = allStudents.filter(s=>s.name.toLowerCase().includes(q)||(s.rollNumber||'').toLowerCase().includes(q));
+  sel.innerHTML = '<option value="">Select student…</option>' + filtered.map(s=>`<option value="${s._id}">${s.name} (${s.rollNumber})</option>`).join('');
+}
+
+async function viewStudentAttendance(id, name) {
+  const data = await apiFetch(`/attendance/summary/${id}`);
+  showToast(`Loaded ${name}'s attendance`,'info');
+}
+</script>
+</body>
+</html>
